@@ -1,156 +1,171 @@
 Technique ID: T1036.005
+Technique Name: Match Legitimate Name or Location
 Kill Chain Phases: defense-evasion
-Pseudocode:
-Title: Pseudocode - Common Windows Process Masquerading (Pseudocode, CAR native)
-processes = search Process:*
-suspicious_processes = filter processes where (
-  (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
-  OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
-  OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
-  OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
-  OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
-  OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
-  OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
-  OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
-  OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
-  OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
-  )
-output suspicious_processes
-
-Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
-index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
-(process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
-OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
-OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
-OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
-OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
-OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
-OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
-OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
-OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
-OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
-)
-
-Title: 
-processes = search Process:*
-suspicious_processes = filter processes where (
-  (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
-  OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
-  OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
-  OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
-  OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
-  OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
-  OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
-  OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
-  OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
-  OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
-  )
-output suspicious_processes
-
-Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
-index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
-(process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
-OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
-OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
-OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
-OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
-OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
-OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
-OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
-OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
-OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
-)
+  Pseudocode:
+    Title: Common Windows Process Masquerading
+    
+    
+    Title: Pseudocode - Common Windows Process Masquerading 
+    processes = search Process:*
+    suspicious_processes = filter processes where (
+      (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
+      OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
+      OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
+      OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
+      OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
+      OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
+      OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
+      OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
+      OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
+      OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
+      )
+    output suspicious_processes
+    
+    Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
+    index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
+    (process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
+    OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
+    OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
+    OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
+    OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
+    OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
+    OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
+    OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
+    OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
+    OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
+    )
+    
+    Title: 
+    processes = search Process:*
+    suspicious_processes = filter processes where (
+      (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
+      OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
+      OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
+      OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
+      OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
+      OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
+      OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
+      OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
+      OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
+      OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
+      )
+    output suspicious_processes
+    
+    Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
+    index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
+    (process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
+    OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
+    OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
+    OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
+    OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
+    OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
+    OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
+    OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
+    OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
+    OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
+    )
 ----------------------------------------
 Technique ID: T1055.001
+Technique Name: Dynamic-link Library Injection
 Kill Chain Phases: defense-evasion, privilege-escalation
-Pseudocode:
-Title: Pseudocode
-remote_thread = search Thread:RemoteCreate
-remote_thread = filter (start_function == "LoadLibraryA" or start_function == "LoadLibraryW")
-remote_thread = filter (src_image_path != "C:\Path\To\TrustedProgram.exe")
-
-output remote_thread
-
-Title: Logpoint, LogPoint native
-norm_id=WindowsSysmon event_id=8 start_function IN ["LoadLibraryA", "LoadLibraryW"] -source_image="C:\Path\To\TrustedProgram.exe"
-
-Title: 
-remote_thread = search Thread:RemoteCreate
-remote_thread = filter (start_function == "LoadLibraryA" or start_function == "LoadLibraryW")
-remote_thread = filter (src_image_path != "C:\Path\To\TrustedProgram.exe")
-
-output remote_thread
-
-Title: Logpoint, LogPoint native
-norm_id=WindowsSysmon event_id=8 start_function IN ["LoadLibraryA", "LoadLibraryW"] -source_image="C:\Path\To\TrustedProgram.exe"
-Title: Pseudocode - mavinject process and its common argument (Pseudocode, CAR native)
-processes = search Process:Create
-mavinject_processes = filter processes where (
-  exe = "C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR command_line = "*/INJECTRUNNING*"
-output mavinject_processes
-
-Title: Splunk Search - mavinject (Splunk, Sysmon native)
-(index=__your_sysmon_index__ EventCode=1) (Image="C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR CommandLine="*\INJECTRUNNING*")
-
-Title: LogPoint Search - mavinject (Logpoint, LogPoint native)
-norm_id=WindowsSysmon event_id=1 (image="C:\Windows\SysWOW64\mavinject.exe" OR image="C:\Windows\System32\mavinject.exe" OR command="*\INJECTRUNNING*")
-
-Title: 
-processes = search Process:Create
-mavinject_processes = filter processes where (
-  exe = "C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR command_line = "*/INJECTRUNNING*"
-output mavinject_processes
-
-Title: Splunk Search - mavinject (Splunk, Sysmon native)
-(index=__your_sysmon_index__ EventCode=1) (Image="C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR CommandLine="*\INJECTRUNNING*")
-
-Title: LogPoint Search - mavinject (Logpoint, LogPoint native)
-norm_id=WindowsSysmon event_id=1 (image="C:\Windows\SysWOW64\mavinject.exe" OR image="C:\Windows\System32\mavinject.exe" OR command="*\INJECTRUNNING*")
+  Pseudocode:
+    Title: DLL Injection via Load Library
+    
+    
+    Title: Pseudocode
+    remote_thread = search Thread:RemoteCreate
+    remote_thread = filter (start_function == "LoadLibraryA" or start_function == "LoadLibraryW")
+    remote_thread = filter (src_image_path != "C:\Path\To\TrustedProgram.exe")
+    
+    output remote_thread
+    
+    Title: Logpoint, LogPoint native
+    norm_id=WindowsSysmon event_id=8 start_function IN ["LoadLibraryA", "LoadLibraryW"] -source_image="C:\Path\To\TrustedProgram.exe"
+    
+    Title: 
+    remote_thread = search Thread:RemoteCreate
+    remote_thread = filter (start_function == "LoadLibraryA" or start_function == "LoadLibraryW")
+    remote_thread = filter (src_image_path != "C:\Path\To\TrustedProgram.exe")
+    
+    output remote_thread
+    
+    Title: Logpoint, LogPoint native
+    norm_id=WindowsSysmon event_id=8 start_function IN ["LoadLibraryA", "LoadLibraryW"] -source_image="C:\Path\To\TrustedProgram.exe"
+    Title: DLL Injection with Mavinject
+    
+    
+    Title: Pseudocode - mavinject process and its common argument 
+    processes = search Process:Create
+    mavinject_processes = filter processes where (
+      exe = "C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR command_line = "*/INJECTRUNNING*"
+    output mavinject_processes
+    
+    Title: Splunk Search - mavinject (Splunk, Sysmon native)
+    (index=__your_sysmon_index__ EventCode=1) (Image="C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR CommandLine="*\INJECTRUNNING*")
+    
+    Title: LogPoint Search - mavinject (Logpoint, LogPoint native)
+    norm_id=WindowsSysmon event_id=1 (image="C:\Windows\SysWOW64\mavinject.exe" OR image="C:\Windows\System32\mavinject.exe" OR command="*\INJECTRUNNING*")
+    
+    Title: 
+    processes = search Process:Create
+    mavinject_processes = filter processes where (
+      exe = "C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR command_line = "*/INJECTRUNNING*"
+    output mavinject_processes
+    
+    Title: Splunk Search - mavinject (Splunk, Sysmon native)
+    (index=__your_sysmon_index__ EventCode=1) (Image="C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR CommandLine="*\INJECTRUNNING*")
+    
+    Title: LogPoint Search - mavinject (Logpoint, LogPoint native)
+    norm_id=WindowsSysmon event_id=1 (image="C:\Windows\SysWOW64\mavinject.exe" OR image="C:\Windows\System32\mavinject.exe" OR command="*\INJECTRUNNING*")
 ----------------------------------------
 Technique ID: T1574.001
+Technique Name: DLL Search Order Hijacking
 Kill Chain Phases: persistence, privilege-escalation, defense-evasion
-Pseudocode:
-Title: Creation of SafeDllSearchMode (Pseudocode, CAR native)
-processes = search Process:create
-safe_dll_search_processes = filter processes where command_line CONTAINS("*SafeDllSearchMode*") AND ((command_line CONTAINS("*reg*") AND command_line CONTAINS("*add*") AND command_line CONTAINS("*/d*")) OR (command_line CONTAINS("*Set-ItemProperty*") AND command_line CONTAINS(*-value*)) OR ((command_line CONTAINS("*00000000*") AND command_line CONTAINS(*0*)))
-reg_keys = search Registry:value_edit
-safe_dll_reg_keys = filter reg_keys where value="SafeDllSearchMode" AND value_data="0"
-output safe_dll_search_processes, safe_dll_reg_keys
-
-Title: Splunk Search - Creation of SafeDllSearchMode (Splunk, Win. Eventlog/Sysmon native)
-(source="WinEventLog:*" ((((EventCode="4688" OR EventCode="1") ((CommandLine="*reg*" CommandLine="*add*" CommandLine="*/d*") OR (CommandLine="*Set-ItemProperty*" CommandLine="*-value*")) (CommandLine="*00000000*" OR CommandLine="*0*") CommandLine="*SafeDllSearchMode*") OR ((EventCode="4657") ObjectValueName="SafeDllSearchMode" value="0")) OR ((EventCode="13") EventType="SetValue" TargetObject="*SafeDllSearchMode" Details="DWORD (0x00000000)")))
-
-Title: Elastic Search - Creation of SafeDllSearchMode (Elastic, Win. Eventlog/Sysmon native)
-(((EventCode:("4688" OR "1") AND ((process.command_line:*reg* AND process.command_line:*add* AND process.command_line:*\/d*) OR (process.command_line:*Set\-ItemProperty* AND process.command_line:*\-value*)) AND process.command_line:(*00000000* OR *0*) AND process.command_line:*SafeDllSearchMode*) OR (EventCode:"4657" AND winlog.event_data.ObjectValueName:"SafeDllSearchMode" AND value:"0")) OR (EventCode:"13" AND winlog.event_data.EventType:"SetValue" AND winlog.event_data.TargetObject:*SafeDllSearchMode AND winlog.event_data.Details:"DWORD\ \(0x00000000\)"))
-
-Title: LogPoint Search - Creation of SafeDllSearchMode (Logpoint, Win. Eventlog/Sysmon native)
-(((EventCode IN ["4688", "1"] ((CommandLine="*reg*" CommandLine="*add*" CommandLine="*/d*") OR (CommandLine="*Set-ItemProperty*" CommandLine="*-value*")) CommandLine IN ["*00000000*", "*0*"] CommandLine="*SafeDllSearchMode*") OR (EventCode IN "4657" ObjectValueName="SafeDllSearchMode" value="0")) OR (EventCode IN "13" EventType="SetValue" TargetObject="*SafeDllSearchMode" Details="DWORD (0x00000000)"))
-
-Title: Test Case 1
-reg add "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager" /v SafeDllSearchMode /d 0
-
-Title: Test Case 2
-Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Session Manager" -Name SafeDllSearchMode -Value 0
-
-Title: 
-processes = search Process:create
-safe_dll_search_processes = filter processes where command_line CONTAINS("*SafeDllSearchMode*") AND ((command_line CONTAINS("*reg*") AND command_line CONTAINS("*add*") AND command_line CONTAINS("*/d*")) OR (command_line CONTAINS("*Set-ItemProperty*") AND command_line CONTAINS(*-value*)) OR ((command_line CONTAINS("*00000000*") AND command_line CONTAINS(*0*)))
-reg_keys = search Registry:value_edit
-safe_dll_reg_keys = filter reg_keys where value="SafeDllSearchMode" AND value_data="0"
-output safe_dll_search_processes, safe_dll_reg_keys
-
-Title: Splunk Search - Creation of SafeDllSearchMode (Splunk, Win. Eventlog/Sysmon native)
-(source="WinEventLog:*" ((((EventCode="4688" OR EventCode="1") ((CommandLine="*reg*" CommandLine="*add*" CommandLine="*/d*") OR (CommandLine="*Set-ItemProperty*" CommandLine="*-value*")) (CommandLine="*00000000*" OR CommandLine="*0*") CommandLine="*SafeDllSearchMode*") OR ((EventCode="4657") ObjectValueName="SafeDllSearchMode" value="0")) OR ((EventCode="13") EventType="SetValue" TargetObject="*SafeDllSearchMode" Details="DWORD (0x00000000)")))
-
-Title: Elastic Search - Creation of SafeDllSearchMode (Elastic, Win. Eventlog/Sysmon native)
-(((EventCode:("4688" OR "1") AND ((process.command_line:*reg* AND process.command_line:*add* AND process.command_line:*\/d*) OR (process.command_line:*Set\-ItemProperty* AND process.command_line:*\-value*)) AND process.command_line:(*00000000* OR *0*) AND process.command_line:*SafeDllSearchMode*) OR (EventCode:"4657" AND winlog.event_data.ObjectValueName:"SafeDllSearchMode" AND value:"0")) OR (EventCode:"13" AND winlog.event_data.EventType:"SetValue" AND winlog.event_data.TargetObject:*SafeDllSearchMode AND winlog.event_data.Details:"DWORD\ \(0x00000000\)"))
-
-Title: LogPoint Search - Creation of SafeDllSearchMode (Logpoint, Win. Eventlog/Sysmon native)
-(((EventCode IN ["4688", "1"] ((CommandLine="*reg*" CommandLine="*add*" CommandLine="*/d*") OR (CommandLine="*Set-ItemProperty*" CommandLine="*-value*")) CommandLine IN ["*00000000*", "*0*"] CommandLine="*SafeDllSearchMode*") OR (EventCode IN "4657" ObjectValueName="SafeDllSearchMode" value="0")) OR (EventCode IN "13" EventType="SetValue" TargetObject="*SafeDllSearchMode" Details="DWORD (0x00000000)"))
-
-Title: Test Case 1
-reg add "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager" /v SafeDllSearchMode /d 0
-
-Title: Test Case 2
-Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Session Manager" -Name SafeDllSearchMode -Value 0
+  Pseudocode:
+    Title: Registry Edit with Creation of SafeDllSearchMode Key Set to 0
+    
+    
+    Title: Creation of SafeDllSearchMode 
+    processes = search Process:create
+    safe_dll_search_processes = filter processes where command_line CONTAINS("*SafeDllSearchMode*") AND ((command_line CONTAINS("*reg*") AND command_line CONTAINS("*add*") AND command_line CONTAINS("*/d*")) OR (command_line CONTAINS("*Set-ItemProperty*") AND command_line CONTAINS(*-value*)) OR ((command_line CONTAINS("*00000000*") AND command_line CONTAINS(*0*)))
+    reg_keys = search Registry:value_edit
+    safe_dll_reg_keys = filter reg_keys where value="SafeDllSearchMode" AND value_data="0"
+    output safe_dll_search_processes, safe_dll_reg_keys
+    
+    Title: Splunk Search - Creation of SafeDllSearchMode (Splunk, Win. Eventlog/Sysmon native)
+    (source="WinEventLog:*" ((((EventCode="4688" OR EventCode="1") ((CommandLine="*reg*" CommandLine="*add*" CommandLine="*/d*") OR (CommandLine="*Set-ItemProperty*" CommandLine="*-value*")) (CommandLine="*00000000*" OR CommandLine="*0*") CommandLine="*SafeDllSearchMode*") OR ((EventCode="4657") ObjectValueName="SafeDllSearchMode" value="0")) OR ((EventCode="13") EventType="SetValue" TargetObject="*SafeDllSearchMode" Details="DWORD (0x00000000)")))
+    
+    Title: Elastic Search - Creation of SafeDllSearchMode (Elastic, Win. Eventlog/Sysmon native)
+    (((EventCode:("4688" OR "1") AND ((process.command_line:*reg* AND process.command_line:*add* AND process.command_line:*\/d*) OR (process.command_line:*Set\-ItemProperty* AND process.command_line:*\-value*)) AND process.command_line:(*00000000* OR *0*) AND process.command_line:*SafeDllSearchMode*) OR (EventCode:"4657" AND winlog.event_data.ObjectValueName:"SafeDllSearchMode" AND value:"0")) OR (EventCode:"13" AND winlog.event_data.EventType:"SetValue" AND winlog.event_data.TargetObject:*SafeDllSearchMode AND winlog.event_data.Details:"DWORD\ \(0x00000000\)"))
+    
+    Title: LogPoint Search - Creation of SafeDllSearchMode (Logpoint, Win. Eventlog/Sysmon native)
+    (((EventCode IN ["4688", "1"] ((CommandLine="*reg*" CommandLine="*add*" CommandLine="*/d*") OR (CommandLine="*Set-ItemProperty*" CommandLine="*-value*")) CommandLine IN ["*00000000*", "*0*"] CommandLine="*SafeDllSearchMode*") OR (EventCode IN "4657" ObjectValueName="SafeDllSearchMode" value="0")) OR (EventCode IN "13" EventType="SetValue" TargetObject="*SafeDllSearchMode" Details="DWORD (0x00000000)"))
+    
+    Title: Test Case 1
+    reg add "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager" /v SafeDllSearchMode /d 0
+    
+    Title: Test Case 2
+    Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Session Manager" -Name SafeDllSearchMode -Value 0
+    
+    Title: 
+    processes = search Process:create
+    safe_dll_search_processes = filter processes where command_line CONTAINS("*SafeDllSearchMode*") AND ((command_line CONTAINS("*reg*") AND command_line CONTAINS("*add*") AND command_line CONTAINS("*/d*")) OR (command_line CONTAINS("*Set-ItemProperty*") AND command_line CONTAINS(*-value*)) OR ((command_line CONTAINS("*00000000*") AND command_line CONTAINS(*0*)))
+    reg_keys = search Registry:value_edit
+    safe_dll_reg_keys = filter reg_keys where value="SafeDllSearchMode" AND value_data="0"
+    output safe_dll_search_processes, safe_dll_reg_keys
+    
+    Title: Splunk Search - Creation of SafeDllSearchMode (Splunk, Win. Eventlog/Sysmon native)
+    (source="WinEventLog:*" ((((EventCode="4688" OR EventCode="1") ((CommandLine="*reg*" CommandLine="*add*" CommandLine="*/d*") OR (CommandLine="*Set-ItemProperty*" CommandLine="*-value*")) (CommandLine="*00000000*" OR CommandLine="*0*") CommandLine="*SafeDllSearchMode*") OR ((EventCode="4657") ObjectValueName="SafeDllSearchMode" value="0")) OR ((EventCode="13") EventType="SetValue" TargetObject="*SafeDllSearchMode" Details="DWORD (0x00000000)")))
+    
+    Title: Elastic Search - Creation of SafeDllSearchMode (Elastic, Win. Eventlog/Sysmon native)
+    (((EventCode:("4688" OR "1") AND ((process.command_line:*reg* AND process.command_line:*add* AND process.command_line:*\/d*) OR (process.command_line:*Set\-ItemProperty* AND process.command_line:*\-value*)) AND process.command_line:(*00000000* OR *0*) AND process.command_line:*SafeDllSearchMode*) OR (EventCode:"4657" AND winlog.event_data.ObjectValueName:"SafeDllSearchMode" AND value:"0")) OR (EventCode:"13" AND winlog.event_data.EventType:"SetValue" AND winlog.event_data.TargetObject:*SafeDllSearchMode AND winlog.event_data.Details:"DWORD\ \(0x00000000\)"))
+    
+    Title: LogPoint Search - Creation of SafeDllSearchMode (Logpoint, Win. Eventlog/Sysmon native)
+    (((EventCode IN ["4688", "1"] ((CommandLine="*reg*" CommandLine="*add*" CommandLine="*/d*") OR (CommandLine="*Set-ItemProperty*" CommandLine="*-value*")) CommandLine IN ["*00000000*", "*0*"] CommandLine="*SafeDllSearchMode*") OR (EventCode IN "4657" ObjectValueName="SafeDllSearchMode" value="0")) OR (EventCode IN "13" EventType="SetValue" TargetObject="*SafeDllSearchMode" Details="DWORD (0x00000000)"))
+    
+    Title: Test Case 1
+    reg add "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager" /v SafeDllSearchMode /d 0
+    
+    Title: Test Case 2
+    Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Session Manager" -Name SafeDllSearchMode -Value 0
 ----------------------------------------

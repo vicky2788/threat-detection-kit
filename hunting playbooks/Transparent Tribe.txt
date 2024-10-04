@@ -1,126 +1,134 @@
 Technique ID: T1059.005
+Technique Name: Visual Basic
 Kill Chain Phases: execution
-Pseudocode:
-Title: Pseudocode
-processes = search Process:Create
-reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
- or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
- or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
- or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
- or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
- or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
- or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
- or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
- or exe == "wscript.exe" or exe == "xcopy.exe")
-reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
-output reg_grouped
-
-Title: Dnif, Sysmon native
-_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
->>_agg count
->>_checkif int_compare Count > 1 include
-
-Title: Logpoint, LogPoint native
-norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
-| chart count() as cnt by host
-| search cnt > 1
-
-Title: Test Case 1
-ipconfig /all
-hostname
-systeminfo
-reg.exe Query HKLM\Software\Microsoft
-
-Title: 
-processes = search Process:Create
-reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
- or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
- or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
- or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
- or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
- or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
- or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
- or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
- or exe == "wscript.exe" or exe == "xcopy.exe")
-reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
-output reg_grouped
-
-Title: Dnif, Sysmon native
-_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
->>_agg count
->>_checkif int_compare Count > 1 include
-
-Title: Logpoint, LogPoint native
-norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
-| chart count() as cnt by host
-| search cnt > 1
-
-Title: Test Case 1
-ipconfig /all
-hostname
-systeminfo
-reg.exe Query HKLM\Software\Microsoft
+  Pseudocode:
+    Title: Quick execution of a series of suspicious commands
+    
+    
+    Title: Pseudocode
+    processes = search Process:Create
+    reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+     or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+     or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+     or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+     or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+     or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+     or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+     or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+     or exe == "wscript.exe" or exe == "xcopy.exe")
+    reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+    output reg_grouped
+    
+    Title: Dnif, Sysmon native
+    _fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+    >>_agg count
+    >>_checkif int_compare Count > 1 include
+    
+    Title: Logpoint, LogPoint native
+    norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+    | chart count() as cnt by host
+    | search cnt > 1
+    
+    Title: Test Case 1
+    ipconfig /all
+    hostname
+    systeminfo
+    reg.exe Query HKLM\Software\Microsoft
+    
+    Title: 
+    processes = search Process:Create
+    reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+     or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+     or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+     or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+     or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+     or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+     or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+     or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+     or exe == "wscript.exe" or exe == "xcopy.exe")
+    reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+    output reg_grouped
+    
+    Title: Dnif, Sysmon native
+    _fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+    >>_agg count
+    >>_checkif int_compare Count > 1 include
+    
+    Title: Logpoint, LogPoint native
+    norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+    | chart count() as cnt by host
+    | search cnt > 1
+    
+    Title: Test Case 1
+    ipconfig /all
+    hostname
+    systeminfo
+    reg.exe Query HKLM\Software\Microsoft
 ----------------------------------------
 Technique ID: T1036.005
+Technique Name: Match Legitimate Name or Location
 Kill Chain Phases: defense-evasion
-Pseudocode:
-Title: Pseudocode - Common Windows Process Masquerading (Pseudocode, CAR native)
-processes = search Process:*
-suspicious_processes = filter processes where (
-  (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
-  OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
-  OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
-  OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
-  OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
-  OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
-  OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
-  OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
-  OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
-  OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
-  )
-output suspicious_processes
-
-Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
-index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
-(process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
-OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
-OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
-OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
-OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
-OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
-OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
-OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
-OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
-OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
-)
-
-Title: 
-processes = search Process:*
-suspicious_processes = filter processes where (
-  (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
-  OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
-  OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
-  OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
-  OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
-  OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
-  OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
-  OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
-  OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
-  OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
-  )
-output suspicious_processes
-
-Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
-index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
-(process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
-OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
-OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
-OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
-OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
-OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
-OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
-OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
-OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
-OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
-)
+  Pseudocode:
+    Title: Common Windows Process Masquerading
+    
+    
+    Title: Pseudocode - Common Windows Process Masquerading 
+    processes = search Process:*
+    suspicious_processes = filter processes where (
+      (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
+      OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
+      OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
+      OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
+      OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
+      OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
+      OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
+      OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
+      OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
+      OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
+      )
+    output suspicious_processes
+    
+    Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
+    index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
+    (process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
+    OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
+    OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
+    OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
+    OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
+    OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
+    OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
+    OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
+    OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
+    OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
+    )
+    
+    Title: 
+    processes = search Process:*
+    suspicious_processes = filter processes where (
+      (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
+      OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
+      OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
+      OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
+      OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
+      OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
+      OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
+      OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
+      OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
+      OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
+      )
+    output suspicious_processes
+    
+    Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
+    index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
+    (process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
+    OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
+    OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
+    OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
+    OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
+    OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
+    OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
+    OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
+    OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
+    OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
+    )
 ----------------------------------------

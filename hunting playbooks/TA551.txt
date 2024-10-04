@@ -1,210 +1,228 @@
 Technique ID: T1218.010
+Technique Name: Regsvr32
 Kill Chain Phases: defense-evasion
-Pseudocode:
-Title: Main Pattern (Splunk, Sysmon native)
-index=__your_sysmon_data__ EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*"
-
-Title: Main Pattern - pseudocode (Pseudocode, CAR)
-processes = search Process:Create
-regsvr_processes = filter processes where (
-  parent_image_path == "*regsvr32.exe" and image_path != "*regsvr32.exe*"
- )
-output regsvr_processes
-
-Title: New items since last month (Splunk, Sysmon native)
-index=__your_sysmon_data__ earliest=-d@d latest=now() EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*" | search NOT [
-search index=__your_sysmon_data__ earliest=-60d@d latest=-30d@d EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*" | dedup CommandLine | fields CommandLine ]
-
-Title: Spawning child processes (Splunk, Sysmon native)
-index=__your_sysmon_data__ EventCode=1 (ParentImage="C:\\Windows\\System32\\regsvr32.exe" OR ParentImage="C:\\Windows\\SysWOW64\\regsvr32.exe") AND Image!="C:\\Windows\\System32\\regsvr32.exe" AND Image!="C:\\Windows\\SysWOW64\\regsvr32.exe" AND Image!="C:\\WINDOWS\\System32\\regsvr32.exe" AND Image!="C:\\WINDOWS\\SysWOW64\\regsvr32.exe" AND Image!="C:\\Windows\\SysWOW64\\WerFault.exe" AND Image!="C:\\Windows\\System32\\wevtutil.exe" AND Image!="C:\\Windows\\System32\\WerFault.exe"|stats values(ComputerName) as "Computer Name" values(ParentCommandLine) as "Parent Command Line" count(Image) as ImageCount by Image
-
-Title: Spawning child processes - pseudocode (Pseudocode, CAR)
-processes = search Process:Create
-regsvr_processes = filter processes where (
-  (parent_image_path == "C:\Windows\System32\regsvr32.exe" or parent_image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
-  image_path != "C:\Windows\System32\regsvr32.exe" and
-  image_path != "C:\Windows\SysWOW64\regsvr32.exe" and
-  image_path != "C:\Windows\SysWOW64\WerFault.exe" and
-  image_path != "C:\Windows\System32\WerFault.exe" and
-  image_path != "C:\Windows\System32\wevtutil.exe"
- )
-output regsvr_processes
-
-Title: Loading unsigned images (Splunk, Sysmon native)
-index=__your_sysmon_data__ EventCode=7 (Image="C:\\Windows\\System32\\regsvr32.exe" OR Image="C:\\Windows\\SysWOW64\\regsvr32.exe") Signed=false ImageLoaded!="C:\\Program Files*" ImageLoaded!="C:\\Windows\\*"|stats values(ComputerName) as "Computer Name" count(ImageLoaded) as ImageLoadedCount by ImageLoaded
-
-Title: Loading unsigned images - pseudocode (Pseudocode, CAR)
-modules = search Module:Load
-unsigned_modules = filter modules where (
-  (image_path == "C:\Windows\System32\regsvr32.exe" or image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
-  signer == null and
-  module_path != "C:\Program Files*" and
-  module_path != "C:\Windows\*"
-)
-output unsigned_modules
-
-Title: 
-processes = search Process:Create
-regsvr_processes = filter processes where (
-  parent_image_path == "*regsvr32.exe" and image_path != "*regsvr32.exe*"
- )
-output regsvr_processes
-
-Title: New items since last month (Splunk, Sysmon native)
-index=__your_sysmon_data__ earliest=-d@d latest=now() EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*" | search NOT [
-search index=__your_sysmon_data__ earliest=-60d@d latest=-30d@d EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*" | dedup CommandLine | fields CommandLine ]
-
-Title: Spawning child processes (Splunk, Sysmon native)
-index=__your_sysmon_data__ EventCode=1 (ParentImage="C:\\Windows\\System32\\regsvr32.exe" OR ParentImage="C:\\Windows\\SysWOW64\\regsvr32.exe") AND Image!="C:\\Windows\\System32\\regsvr32.exe" AND Image!="C:\\Windows\\SysWOW64\\regsvr32.exe" AND Image!="C:\\WINDOWS\\System32\\regsvr32.exe" AND Image!="C:\\WINDOWS\\SysWOW64\\regsvr32.exe" AND Image!="C:\\Windows\\SysWOW64\\WerFault.exe" AND Image!="C:\\Windows\\System32\\wevtutil.exe" AND Image!="C:\\Windows\\System32\\WerFault.exe"|stats values(ComputerName) as "Computer Name" values(ParentCommandLine) as "Parent Command Line" count(Image) as ImageCount by Image
-
-Title: Spawning child processes - pseudocode (Pseudocode, CAR)
-processes = search Process:Create
-regsvr_processes = filter processes where (
-  (parent_image_path == "C:\Windows\System32\regsvr32.exe" or parent_image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
-  image_path != "C:\Windows\System32\regsvr32.exe" and
-  image_path != "C:\Windows\SysWOW64\regsvr32.exe" and
-  image_path != "C:\Windows\SysWOW64\WerFault.exe" and
-  image_path != "C:\Windows\System32\WerFault.exe" and
-  image_path != "C:\Windows\System32\wevtutil.exe"
- )
-output regsvr_processes
-
-Title: Loading unsigned images (Splunk, Sysmon native)
-index=__your_sysmon_data__ EventCode=7 (Image="C:\\Windows\\System32\\regsvr32.exe" OR Image="C:\\Windows\\SysWOW64\\regsvr32.exe") Signed=false ImageLoaded!="C:\\Program Files*" ImageLoaded!="C:\\Windows\\*"|stats values(ComputerName) as "Computer Name" count(ImageLoaded) as ImageLoadedCount by ImageLoaded
-
-Title: Loading unsigned images - pseudocode (Pseudocode, CAR)
-modules = search Module:Load
-unsigned_modules = filter modules where (
-  (image_path == "C:\Windows\System32\regsvr32.exe" or image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
-  signer == null and
-  module_path != "C:\Program Files*" and
-  module_path != "C:\Windows\*"
-)
-output unsigned_modules
-
-Title: 
-processes = search Process:Create
-regsvr_processes = filter processes where (
-  (parent_image_path == "C:\Windows\System32\regsvr32.exe" or parent_image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
-  image_path != "C:\Windows\System32\regsvr32.exe" and
-  image_path != "C:\Windows\SysWOW64\regsvr32.exe" and
-  image_path != "C:\Windows\SysWOW64\WerFault.exe" and
-  image_path != "C:\Windows\System32\WerFault.exe" and
-  image_path != "C:\Windows\System32\wevtutil.exe"
- )
-output regsvr_processes
-
-Title: Loading unsigned images (Splunk, Sysmon native)
-index=__your_sysmon_data__ EventCode=7 (Image="C:\\Windows\\System32\\regsvr32.exe" OR Image="C:\\Windows\\SysWOW64\\regsvr32.exe") Signed=false ImageLoaded!="C:\\Program Files*" ImageLoaded!="C:\\Windows\\*"|stats values(ComputerName) as "Computer Name" count(ImageLoaded) as ImageLoadedCount by ImageLoaded
-
-Title: Loading unsigned images - pseudocode (Pseudocode, CAR)
-modules = search Module:Load
-unsigned_modules = filter modules where (
-  (image_path == "C:\Windows\System32\regsvr32.exe" or image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
-  signer == null and
-  module_path != "C:\Program Files*" and
-  module_path != "C:\Windows\*"
-)
-output unsigned_modules
-
-Title: 
-modules = search Module:Load
-unsigned_modules = filter modules where (
-  (image_path == "C:\Windows\System32\regsvr32.exe" or image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
-  signer == null and
-  module_path != "C:\Program Files*" and
-  module_path != "C:\Windows\*"
-)
-output unsigned_modules
-Title: Splunk, Sysmon native
-index=__your_sysmon_events__ EventCode=1 regsvr32.exe scrobj.dll | search Image="*regsvr32.exe"
-
-Title: Eql, EQL native
-process where subtype.create and
-  (process_path == "*regsvr32.exe" and command_line == "*scrobj.dll")
-
-Title: Psuedocode, CAR
-processes = search Process:Create
-squiblydoo_processes = filter processes where (
-  image_path == "*regsvr32.exe" and command_line == "*scrobj.dll"
-  )
-output squiblydoo_processes
-
-Title: Logpoint, LogPoint native
-norm_id=WindowsSysmon event_id=1 image="*\regsvr32.exe" command="*scrobj.dll"
+  Pseudocode:
+    Title: Generic Regsvr32
+    
+    
+    Title: Main Pattern (Splunk, Sysmon native)
+    index=__your_sysmon_data__ EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*"
+    
+    Title: Main Pattern - pseudocode (Pseudocode, CAR)
+    processes = search Process:Create
+    regsvr_processes = filter processes where (
+      parent_image_path == "*regsvr32.exe" and image_path != "*regsvr32.exe*"
+     )
+    output regsvr_processes
+    
+    Title: New items since last month (Splunk, Sysmon native)
+    index=__your_sysmon_data__ earliest=-d@d latest=now() EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*" | search NOT [
+    search index=__your_sysmon_data__ earliest=-60d@d latest=-30d@d EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*" | dedup CommandLine | fields CommandLine ]
+    
+    Title: Spawning child processes (Splunk, Sysmon native)
+    index=__your_sysmon_data__ EventCode=1 (ParentImage="C:\\Windows\\System32\\regsvr32.exe" OR ParentImage="C:\\Windows\\SysWOW64\\regsvr32.exe") AND Image!="C:\\Windows\\System32\\regsvr32.exe" AND Image!="C:\\Windows\\SysWOW64\\regsvr32.exe" AND Image!="C:\\WINDOWS\\System32\\regsvr32.exe" AND Image!="C:\\WINDOWS\\SysWOW64\\regsvr32.exe" AND Image!="C:\\Windows\\SysWOW64\\WerFault.exe" AND Image!="C:\\Windows\\System32\\wevtutil.exe" AND Image!="C:\\Windows\\System32\\WerFault.exe"|stats values(ComputerName) as "Computer Name" values(ParentCommandLine) as "Parent Command Line" count(Image) as ImageCount by Image
+    
+    Title: Spawning child processes - pseudocode (Pseudocode, CAR)
+    processes = search Process:Create
+    regsvr_processes = filter processes where (
+      (parent_image_path == "C:\Windows\System32\regsvr32.exe" or parent_image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+      image_path != "C:\Windows\System32\regsvr32.exe" and
+      image_path != "C:\Windows\SysWOW64\regsvr32.exe" and
+      image_path != "C:\Windows\SysWOW64\WerFault.exe" and
+      image_path != "C:\Windows\System32\WerFault.exe" and
+      image_path != "C:\Windows\System32\wevtutil.exe"
+     )
+    output regsvr_processes
+    
+    Title: Loading unsigned images (Splunk, Sysmon native)
+    index=__your_sysmon_data__ EventCode=7 (Image="C:\\Windows\\System32\\regsvr32.exe" OR Image="C:\\Windows\\SysWOW64\\regsvr32.exe") Signed=false ImageLoaded!="C:\\Program Files*" ImageLoaded!="C:\\Windows\\*"|stats values(ComputerName) as "Computer Name" count(ImageLoaded) as ImageLoadedCount by ImageLoaded
+    
+    Title: Loading unsigned images - pseudocode (Pseudocode, CAR)
+    modules = search Module:Load
+    unsigned_modules = filter modules where (
+      (image_path == "C:\Windows\System32\regsvr32.exe" or image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+      signer == null and
+      module_path != "C:\Program Files*" and
+      module_path != "C:\Windows\*"
+    )
+    output unsigned_modules
+    
+    Title: 
+    processes = search Process:Create
+    regsvr_processes = filter processes where (
+      parent_image_path == "*regsvr32.exe" and image_path != "*regsvr32.exe*"
+     )
+    output regsvr_processes
+    
+    Title: New items since last month (Splunk, Sysmon native)
+    index=__your_sysmon_data__ earliest=-d@d latest=now() EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*" | search NOT [
+    search index=__your_sysmon_data__ earliest=-60d@d latest=-30d@d EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*" | dedup CommandLine | fields CommandLine ]
+    
+    Title: Spawning child processes (Splunk, Sysmon native)
+    index=__your_sysmon_data__ EventCode=1 (ParentImage="C:\\Windows\\System32\\regsvr32.exe" OR ParentImage="C:\\Windows\\SysWOW64\\regsvr32.exe") AND Image!="C:\\Windows\\System32\\regsvr32.exe" AND Image!="C:\\Windows\\SysWOW64\\regsvr32.exe" AND Image!="C:\\WINDOWS\\System32\\regsvr32.exe" AND Image!="C:\\WINDOWS\\SysWOW64\\regsvr32.exe" AND Image!="C:\\Windows\\SysWOW64\\WerFault.exe" AND Image!="C:\\Windows\\System32\\wevtutil.exe" AND Image!="C:\\Windows\\System32\\WerFault.exe"|stats values(ComputerName) as "Computer Name" values(ParentCommandLine) as "Parent Command Line" count(Image) as ImageCount by Image
+    
+    Title: Spawning child processes - pseudocode (Pseudocode, CAR)
+    processes = search Process:Create
+    regsvr_processes = filter processes where (
+      (parent_image_path == "C:\Windows\System32\regsvr32.exe" or parent_image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+      image_path != "C:\Windows\System32\regsvr32.exe" and
+      image_path != "C:\Windows\SysWOW64\regsvr32.exe" and
+      image_path != "C:\Windows\SysWOW64\WerFault.exe" and
+      image_path != "C:\Windows\System32\WerFault.exe" and
+      image_path != "C:\Windows\System32\wevtutil.exe"
+     )
+    output regsvr_processes
+    
+    Title: Loading unsigned images (Splunk, Sysmon native)
+    index=__your_sysmon_data__ EventCode=7 (Image="C:\\Windows\\System32\\regsvr32.exe" OR Image="C:\\Windows\\SysWOW64\\regsvr32.exe") Signed=false ImageLoaded!="C:\\Program Files*" ImageLoaded!="C:\\Windows\\*"|stats values(ComputerName) as "Computer Name" count(ImageLoaded) as ImageLoadedCount by ImageLoaded
+    
+    Title: Loading unsigned images - pseudocode (Pseudocode, CAR)
+    modules = search Module:Load
+    unsigned_modules = filter modules where (
+      (image_path == "C:\Windows\System32\regsvr32.exe" or image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+      signer == null and
+      module_path != "C:\Program Files*" and
+      module_path != "C:\Windows\*"
+    )
+    output unsigned_modules
+    
+    Title: 
+    processes = search Process:Create
+    regsvr_processes = filter processes where (
+      (parent_image_path == "C:\Windows\System32\regsvr32.exe" or parent_image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+      image_path != "C:\Windows\System32\regsvr32.exe" and
+      image_path != "C:\Windows\SysWOW64\regsvr32.exe" and
+      image_path != "C:\Windows\SysWOW64\WerFault.exe" and
+      image_path != "C:\Windows\System32\WerFault.exe" and
+      image_path != "C:\Windows\System32\wevtutil.exe"
+     )
+    output regsvr_processes
+    
+    Title: Loading unsigned images (Splunk, Sysmon native)
+    index=__your_sysmon_data__ EventCode=7 (Image="C:\\Windows\\System32\\regsvr32.exe" OR Image="C:\\Windows\\SysWOW64\\regsvr32.exe") Signed=false ImageLoaded!="C:\\Program Files*" ImageLoaded!="C:\\Windows\\*"|stats values(ComputerName) as "Computer Name" count(ImageLoaded) as ImageLoadedCount by ImageLoaded
+    
+    Title: Loading unsigned images - pseudocode (Pseudocode, CAR)
+    modules = search Module:Load
+    unsigned_modules = filter modules where (
+      (image_path == "C:\Windows\System32\regsvr32.exe" or image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+      signer == null and
+      module_path != "C:\Program Files*" and
+      module_path != "C:\Windows\*"
+    )
+    output unsigned_modules
+    
+    Title: 
+    modules = search Module:Load
+    unsigned_modules = filter modules where (
+      (image_path == "C:\Windows\System32\regsvr32.exe" or image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+      signer == null and
+      module_path != "C:\Program Files*" and
+      module_path != "C:\Windows\*"
+    )
+    output unsigned_modules
+    Title: Squiblydoo
+    
+    
+    Title: Splunk, Sysmon native
+    index=__your_sysmon_events__ EventCode=1 regsvr32.exe scrobj.dll | search Image="*regsvr32.exe"
+    
+    Title: Eql, EQL native
+    process where subtype.create and
+      (process_path == "*regsvr32.exe" and command_line == "*scrobj.dll")
+    
+    Title: Psuedocode, CAR
+    processes = search Process:Create
+    squiblydoo_processes = filter processes where (
+      image_path == "*regsvr32.exe" and command_line == "*scrobj.dll"
+      )
+    output squiblydoo_processes
+    
+    Title: Logpoint, LogPoint native
+    norm_id=WindowsSysmon event_id=1 image="*\regsvr32.exe" command="*scrobj.dll"
 ----------------------------------------
 Technique ID: T1218.011
+Technique Name: Rundll32
 Kill Chain Phases: defense-evasion
-Pseudocode:
-Title: Pseudocode
-process = search Process:Create
-rundll32 = filter process where (exe == "rundll32.exe")
-output rundll32
-
-Title: Dnif, Sysmon native
-_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=rundll32.exe limit 100
-
-Title: Logpoint, LogPoint native
-norm_id=WindowsSysmon event_id=1 image="*\rundll32.exe"
-
-Title: Test Case 1
-c:\windows\syswow64\rundll32.exe
-RUNDLL32.EXE SHELL32.DLL,Control_RunDLL desk.cpl,,0
-
-Title: 
-process = search Process:Create
-rundll32 = filter process where (exe == "rundll32.exe")
-output rundll32
-
-Title: Dnif, Sysmon native
-_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=rundll32.exe limit 100
-
-Title: Logpoint, LogPoint native
-norm_id=WindowsSysmon event_id=1 image="*\rundll32.exe"
-
-Title: Test Case 1
-c:\windows\syswow64\rundll32.exe
-RUNDLL32.EXE SHELL32.DLL,Control_RunDLL desk.cpl,,0
+  Pseudocode:
+    Title: RunDLL32.exe monitoring
+    
+    
+    Title: Pseudocode
+    process = search Process:Create
+    rundll32 = filter process where (exe == "rundll32.exe")
+    output rundll32
+    
+    Title: Dnif, Sysmon native
+    _fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=rundll32.exe limit 100
+    
+    Title: Logpoint, LogPoint native
+    norm_id=WindowsSysmon event_id=1 image="*\rundll32.exe"
+    
+    Title: Test Case 1
+    c:\windows\syswow64\rundll32.exe
+    RUNDLL32.EXE SHELL32.DLL,Control_RunDLL desk.cpl,,0
+    
+    Title: 
+    process = search Process:Create
+    rundll32 = filter process where (exe == "rundll32.exe")
+    output rundll32
+    
+    Title: Dnif, Sysmon native
+    _fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=rundll32.exe limit 100
+    
+    Title: Logpoint, LogPoint native
+    norm_id=WindowsSysmon event_id=1 image="*\rundll32.exe"
+    
+    Title: Test Case 1
+    c:\windows\syswow64\rundll32.exe
+    RUNDLL32.EXE SHELL32.DLL,Control_RunDLL desk.cpl,,0
 ----------------------------------------
 Technique ID: T1059.003
+Technique Name: Windows Command Shell
 Kill Chain Phases: execution
-Pseudocode:
-Title: Pseudocode
-process = search Process:Create
-cmd = filter process where (exe == "cmd.exe")
-output cmd
-
-Title: Dnif, Sysmon native
-_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
-
-Title: Logpoint, LogPoint native
-norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
-
-Title: 
-process = search Process:Create
-cmd = filter process where (exe == "cmd.exe")
-output cmd
-
-Title: Dnif, Sysmon native
-_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
-
-Title: Logpoint, LogPoint native
-norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
-Title: Pseudocode
-processes = search Process:Create
-cmd = filter processes where (exe == "cmd.exe")
-cmd = from cmd select parent_exe
-historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
-current_cmd = filter cmd (where timestamp >= now - 1 day)
-new_cmd = historic_cmd - current_cmd
-output new_cmd
-
-Title: 
-processes = search Process:Create
-cmd = filter processes where (exe == "cmd.exe")
-cmd = from cmd select parent_exe
-historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
-current_cmd = filter cmd (where timestamp >= now - 1 day)
-new_cmd = historic_cmd - current_cmd
-output new_cmd
+  Pseudocode:
+    Title: Processes Spawning cmd.exe
+    
+    
+    Title: Pseudocode
+    process = search Process:Create
+    cmd = filter process where (exe == "cmd.exe")
+    output cmd
+    
+    Title: Dnif, Sysmon native
+    _fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
+    
+    Title: Logpoint, LogPoint native
+    norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
+    
+    Title: 
+    process = search Process:Create
+    cmd = filter process where (exe == "cmd.exe")
+    output cmd
+    
+    Title: Dnif, Sysmon native
+    _fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
+    
+    Title: Logpoint, LogPoint native
+    norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
+    Title: Outlier Parents of Cmd
+    
+    
+    Title: Pseudocode
+    processes = search Process:Create
+    cmd = filter processes where (exe == "cmd.exe")
+    cmd = from cmd select parent_exe
+    historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
+    current_cmd = filter cmd (where timestamp >= now - 1 day)
+    new_cmd = historic_cmd - current_cmd
+    output new_cmd
+    
+    Title: 
+    processes = search Process:Create
+    cmd = filter processes where (exe == "cmd.exe")
+    cmd = from cmd select parent_exe
+    historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
+    current_cmd = filter cmd (where timestamp >= now - 1 day)
+    new_cmd = historic_cmd - current_cmd
+    output new_cmd
 ----------------------------------------

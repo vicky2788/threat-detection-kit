@@ -1,42 +1,49 @@
 Technique ID: T1059.003
+Technique Name: Windows Command Shell
 Kill Chain Phases: execution
-Pseudocode:
-Title: Pseudocode
-process = search Process:Create
-cmd = filter process where (exe == "cmd.exe")
-output cmd
-
-Title: Dnif, Sysmon native
-_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
-
-Title: Logpoint, LogPoint native
-norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
-
-Title: 
-process = search Process:Create
-cmd = filter process where (exe == "cmd.exe")
-output cmd
-
-Title: Dnif, Sysmon native
-_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
-
-Title: Logpoint, LogPoint native
-norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
-Title: Pseudocode
-processes = search Process:Create
-cmd = filter processes where (exe == "cmd.exe")
-cmd = from cmd select parent_exe
-historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
-current_cmd = filter cmd (where timestamp >= now - 1 day)
-new_cmd = historic_cmd - current_cmd
-output new_cmd
-
-Title: 
-processes = search Process:Create
-cmd = filter processes where (exe == "cmd.exe")
-cmd = from cmd select parent_exe
-historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
-current_cmd = filter cmd (where timestamp >= now - 1 day)
-new_cmd = historic_cmd - current_cmd
-output new_cmd
+  Pseudocode:
+    Title: Processes Spawning cmd.exe
+    
+    
+    Title: Pseudocode
+    process = search Process:Create
+    cmd = filter process where (exe == "cmd.exe")
+    output cmd
+    
+    Title: Dnif, Sysmon native
+    _fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
+    
+    Title: Logpoint, LogPoint native
+    norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
+    
+    Title: 
+    process = search Process:Create
+    cmd = filter process where (exe == "cmd.exe")
+    output cmd
+    
+    Title: Dnif, Sysmon native
+    _fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
+    
+    Title: Logpoint, LogPoint native
+    norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
+    Title: Outlier Parents of Cmd
+    
+    
+    Title: Pseudocode
+    processes = search Process:Create
+    cmd = filter processes where (exe == "cmd.exe")
+    cmd = from cmd select parent_exe
+    historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
+    current_cmd = filter cmd (where timestamp >= now - 1 day)
+    new_cmd = historic_cmd - current_cmd
+    output new_cmd
+    
+    Title: 
+    processes = search Process:Create
+    cmd = filter processes where (exe == "cmd.exe")
+    cmd = from cmd select parent_exe
+    historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
+    current_cmd = filter cmd (where timestamp >= now - 1 day)
+    new_cmd = historic_cmd - current_cmd
+    output new_cmd
 ----------------------------------------
