@@ -1,0 +1,1016 @@
+Technique ID: T1059.001
+Kill Chain Phases: execution
+Pseudocode:
+Title: Pseudocode
+process = search Process:Create
+powershell = filter process where (exe == "powershell.exe" AND parent_exe != "explorer.exe" )
+output powershell
+
+Title: Splunk, Sysmon native
+index=__your_sysmon_index__ EventCode=1 Image="C:\\Windows\\*\\powershell.exe" ParentImage!="C:\\Windows\\explorer.exe"|stats values(CommandLine) as "Command Lines" values(ParentImage) as "Parent Images" by ComputerName
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_name == "powershell.exe" and parent_process_name != "explorer.exe")
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=powershell.exe NOT $ParentProcess=regex(.*explorer.exe.*)i limit 30
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\powershell.exe" -parent_image="C:\Windows\explorer.exe"
+
+Title: 
+process = search Process:Create
+powershell = filter process where (exe == "powershell.exe" AND parent_exe != "explorer.exe" )
+output powershell
+
+Title: Splunk, Sysmon native
+index=__your_sysmon_index__ EventCode=1 Image="C:\\Windows\\*\\powershell.exe" ParentImage!="C:\\Windows\\explorer.exe"|stats values(CommandLine) as "Command Lines" values(ParentImage) as "Parent Images" by ComputerName
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_name == "powershell.exe" and parent_process_name != "explorer.exe")
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=powershell.exe NOT $ParentProcess=regex(.*explorer.exe.*)i limit 30
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\powershell.exe" -parent_image="C:\Windows\explorer.exe"
+Title: Pseudocode
+process = search Process:Create
+wsmprovhost = filter process where (exe == "wsmprovhost.exe" and parent_exe == "svchost.exe")
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_name == "wsmprovhost.exe" and parent_process_name == "svchost.exe")
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\wsmprovhost.exe" parent_image="*\svchost.exe"
+
+Title: 
+process = search Process:Create
+wsmprovhost = filter process where (exe == "wsmprovhost.exe" and parent_exe == "svchost.exe")
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_name == "wsmprovhost.exe" and parent_process_name == "svchost.exe")
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\wsmprovhost.exe" parent_image="*\svchost.exe"
+----------------------------------------
+Technique ID: T1053.005
+Kill Chain Phases: execution, persistence, privilege-escalation
+Pseudocode:
+Title: Pseudocode
+processes = search Process:Create
+reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+ or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+ or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+ or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+ or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+ or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+ or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+ or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+ or exe == "wscript.exe" or exe == "xcopy.exe")
+reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+output reg_grouped
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+>>_agg count
+>>_checkif int_compare Count > 1 include
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+| chart count() as cnt by host
+| search cnt > 1
+
+Title: Test Case 1
+ipconfig /all
+hostname
+systeminfo
+reg.exe Query HKLM\Software\Microsoft
+
+Title: 
+processes = search Process:Create
+reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+ or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+ or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+ or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+ or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+ or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+ or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+ or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+ or exe == "wscript.exe" or exe == "xcopy.exe")
+reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+output reg_grouped
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+>>_agg count
+>>_checkif int_compare Count > 1 include
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+| chart count() as cnt by host
+| search cnt > 1
+
+Title: Test Case 1
+ipconfig /all
+hostname
+systeminfo
+reg.exe Query HKLM\Software\Microsoft
+Title: Pseudocode
+process = search Process:Create
+schtasks = filter process where (exe == "schtasks.exe")
+output schtasks
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=schtasks.exe AND $Process=regex(.*(\/create|\/run|\/query|\/delete|\/change|\/end).*)i limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\schtasks.exe" command IN ["*/create*", "*/run*", "*/query*", "*/delete*", "*/change*", "*/end*"]
+
+Title: Test Case 1
+schtasks /Create /SC ONCE /ST 19:00 /TR C:\Windows\System32\calc.exe /TN calctask
+schtasks /Delete /TN calctask
+
+Title: 
+process = search Process:Create
+schtasks = filter process where (exe == "schtasks.exe")
+output schtasks
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=schtasks.exe AND $Process=regex(.*(\/create|\/run|\/query|\/delete|\/change|\/end).*)i limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\schtasks.exe" command IN ["*/create*", "*/run*", "*/query*", "*/delete*", "*/change*", "*/end*"]
+
+Title: Test Case 1
+schtasks /Create /SC ONCE /ST 19:00 /TR C:\Windows\System32\calc.exe /TN calctask
+schtasks /Delete /TN calctask
+Title: Pseudocode
+flows = search Flow:Message
+schtasks_rpc = filter flows where (
+ src_port >= 49152 and dest_port >= 49152 and
+ proto_info.rpc_interface == "ITaskSchedulerService"
+)
+
+output schtasks_rpc
+
+Title: 
+flows = search Flow:Message
+schtasks_rpc = filter flows where (
+ src_port >= 49152 and dest_port >= 49152 and
+ proto_info.rpc_interface == "ITaskSchedulerService"
+)
+
+output schtasks_rpc
+Title: Pseudocode - Windows task file creation (Pseudocode, CAR native)
+files = search File:Create
+task_files = filter files where (
+  (file_path = "C:\Windows\System32\Tasks\*" or file_path = "C:\Windows\Tasks\*")  and
+  image_path != "C:\WINDOWS\system32\svchost.exe")
+output task_files
+
+Title: Splunk search - Windows task file creation (Splunk, Sysmon native)
+index=__your_sysmon_index__ EventCode=11 Image!="C:\\WINDOWS\\system32\\svchost.exe" (TargetFilename="C:\\Windows\\System32\\Tasks\\
+*" OR TargetFilename="C:\\Windows\\Tasks\\*")
+
+Title: LogPoint search - Windows task file creation (Logpoint, LogPoint native)
+norm_id=WindowsSysmon event_id=11 -source_image="C:\WINDOWS\system32\svchost.exe" (path="C:\Windows\System32\Tasks*" OR path="C:\Windows\Tasks*")
+
+Title: 
+files = search File:Create
+task_files = filter files where (
+  (file_path = "C:\Windows\System32\Tasks\*" or file_path = "C:\Windows\Tasks\*")  and
+  image_path != "C:\WINDOWS\system32\svchost.exe")
+output task_files
+
+Title: Splunk search - Windows task file creation (Splunk, Sysmon native)
+index=__your_sysmon_index__ EventCode=11 Image!="C:\\WINDOWS\\system32\\svchost.exe" (TargetFilename="C:\\Windows\\System32\\Tasks\\
+*" OR TargetFilename="C:\\Windows\\Tasks\\*")
+
+Title: LogPoint search - Windows task file creation (Logpoint, LogPoint native)
+norm_id=WindowsSysmon event_id=11 -source_image="C:\WINDOWS\system32\svchost.exe" (path="C:\Windows\System32\Tasks*" OR path="C:\Windows\Tasks*")
+Title: Creation of Suspicious Scheduled Tasks (Pseudocode, CAR native)
+processes = search Process:create
+susp_tasks_processes = filter processes where command_line CONTAINS("*SCHTASKS*") AND (command_line CONTAINS("*/CREATE*") OR command_line CONTAINS("*/CHANGE*")) AND (command_line CONTAINS("*.cmd*") OR command_line CONTAINS("*.ps1*") OR command_line CONTAINS("*.vbs*") OR command_line CONTAINS("*.py*") OR command_line CONTAINS("*.js*") OR command_line CONTAINS("*.exe*") OR command_line CONTAINS("*.bat*") OR (command_line CONTAINS("*javascript*") OR command_line CONTAINS("*powershell*") OR command_line CONTAINS("*wmic*") OR command_line CONTAINS("*rundll32*") OR command_line CONTAINS("*cmd*") OR command_line CONTAINS("*cscript*") OR command_line CONTAINS("*wscript*") OR command_line CONTAINS("*regsvr32*") OR command_line CONTAINS("*mshta*") OR command_line CONTAINS("*bitsadmin*") OR command_line CONTAINS("*certutil*") OR command_line CONTAINS("*msiexec*") OR command_line CONTAINS("*javaw*") OR (command_line CONTAINS("*%APPDATA%*") OR command_line CONTAINS("*\\AppData\\Roaming*") OR command_line CONTAINS("*%PUBLIC%*") OR command_line CONTAINS("*C:\\Users\\Public*") OR command_line CONTAINS("*%ProgramData%*") OR command_line CONTAINS("*C:\\ProgramData*") OR command_line CONTAINS("*%TEMP%*") OR command_line CONTAINS("*\\AppData\\Local\\Temp*") OR command_line CONTAINS("*\\Windows\\PLA\\System*") OR command_line CONTAINS("*\\tasks*") OR command_line CONTAINS("*\\Registration\\CRMLog*") OR command_line CONTAINS("*\\FxsTmp*") OR command_line CONTAINS("*\\spool\\drivers\\color*") OR command_line CONTAINS("*\\tracing*"))))
+tasks = search Task:create
+susp_tasks = filter tasks where (task_content CONTAINS("*.cmd*") OR task_content CONTAINS("*.ps1*") OR task_content CONTAINS("*.vbs*") OR task_content CONTAINS("*.py*") OR task_content CONTAINS("*.js*") OR task_content CONTAINS("*.exe*") OR task_content CONTAINS("*.bat*") OR (task_content CONTAINS("*javascript*") OR task_content CONTAINS("*powershell*") OR task_content CONTAINS("*wmic*") OR task_content CONTAINS("*rundll32*") OR task_content CONTAINS("*cmd*") OR task_content CONTAINS("*cscript*") OR task_content CONTAINS("*wscript*") OR task_content CONTAINS("*regsvr32*") OR task_content CONTAINS("*mshta*") OR task_content CONTAINS("*bitsadmin*") OR task_content CONTAINS("*certutil*") OR task_content CONTAINS("*msiexec*") OR task_content CONTAINS("*javaw*") OR (task_content CONTAINS("*%APPDATA%*") OR task_content CONTAINS("*\\AppData\\Roaming*") OR task_content CONTAINS("*%PUBLIC%*") OR task_content CONTAINS("*C:\\Users\\Public*") OR task_content CONTAINS("*%ProgramData%*") OR task_content CONTAINS("*C:\\ProgramData*") OR task_content CONTAINS("*%TEMP%*") OR task_content CONTAINS("*\\AppData\\Local\\Temp*") OR task_content CONTAINS("*\\Windows\\PLA\\System*") OR task_content CONTAINS("*\\tasks*") OR task_content CONTAINS("*\\Registration\\CRMLog*") OR task_content CONTAINS("*\\FxsTmp*") OR task_content CONTAINS("*\\spool\\drivers\\color*") OR task_content CONTAINS("*\\tracing*"))))
+output susp_tasks_processes, susp_tasks
+
+Title: Splunk Search - Scheduled Task creation or modification containing suspicious script, extension or user writable path. (Splunk)
+(((EventCode="4688" OR EventCode="1") CommandLine="*SCHTASKS*" (CommandLine="*/CREATE*" OR CommandLine="*/CHANGE*")) ((CommandLine="*.cmd*" OR CommandLine="*.ps1*" OR CommandLine="*.vbs*" OR CommandLine="*.py*" OR CommandLine="*.js*" OR CommandLine="*.exe*" OR CommandLine="*.bat*") OR (CommandLine="*javascript*" OR CommandLine="*powershell*" OR CommandLine="*wmic*" OR CommandLine="*rundll32*" OR CommandLine="*cmd*" OR CommandLine="*cscript*" OR CommandLine="*wscript*" OR CommandLine="*regsvr32*" OR CommandLine="*mshta*" OR CommandLine="*bitsadmin*" OR CommandLine="*certutil*" OR CommandLine="*msiexec*" OR CommandLine="*javaw*") OR (CommandLine="*%APPDATA%*" OR CommandLine="*\\AppData\\Roaming*" OR CommandLine="*%PUBLIC%*" OR CommandLine="*C:\\Users\\Public*" OR CommandLine="*%ProgramData%*" OR CommandLine="*C:\\ProgramData*" OR CommandLine="*%TEMP%*" OR CommandLine="*\\AppData\\Local\\Temp*" OR CommandLine="*\\Windows\\PLA\\System*" OR CommandLine="*\\tasks*" OR CommandLine="*\\Registration\\CRMLog*" OR CommandLine="*\\FxsTmp*" OR CommandLine="*\\spool\\drivers\\color*" OR CommandLine="*\\tracing*"))) OR ((EventCode="4698" OR EventCode="4702") ((TaskContent="*.cmd*" OR TaskContent="*.ps1*" OR TaskContent="*.vbs*" OR TaskContent="*.py*" OR TaskContent="*.js*" OR TaskContent="*.exe*" OR TaskContent="*.bat*") OR (TaskContent="*javascript*" OR TaskContent="*powershell*" OR TaskContent="*wmic*" OR TaskContent="*rundll32*" OR TaskContent="*cmd*" OR TaskContent="*cscript*" OR TaskContent="*wscript*" OR TaskContent="*regsvr32*" OR TaskContent="*mshta*" OR TaskContent="*bitsadmin*" OR TaskContent="*certutil*" OR TaskContent="*msiexec*" OR TaskContent="*javaw*") OR (TaskContent="*%APPDATA%*" OR TaskContent="*\\AppData\\Roaming*" OR TaskContent="*%PUBLIC%*" OR TaskContent="*C:\\Users\\Public*" OR TaskContent="*%ProgramData%*" OR TaskContent="*C:\\ProgramData*" OR TaskContent="*%TEMP%*" OR TaskContent="*\\AppData\\Local\\Temp*" OR TaskContent="*\\Windows\\PLA\\System*" OR TaskContent="*\\tasks*" OR TaskContent="*\\Registration\\CRMLog*" OR TaskContent="*\\FxsTmp*" OR TaskContent="*\\spool\\drivers\\color*" OR TaskContent="*\\tracing*")))
+
+Title: Elastic Search - Scheduled Task creation or modification containing suspicious script, extension or user writable path. (Elastic)
+((winlog.event_id:("4688" OR "1") AND process.command_line:*SCHTASKS* AND process.command_line:(*\/CREATE* OR *\/CHANGE*)) AND (process.command_line:(*.cmd* OR *.ps1* OR *.vbs* OR *.py* OR *.js* OR *.exe* OR *.bat*) OR process.command_line:(*javascript* OR *powershell* OR *wmic* OR *rundll32* OR *cmd* OR *cscript* OR *wscript* OR *regsvr32* OR *mshta* OR *bitsadmin* OR *certutil* OR *msiexec* OR *javaw*) OR process.command_line:(*%APPDATA%* OR *\\AppData\\Roaming* OR *%PUBLIC%* OR *C\:\\Users\\Public* OR *%ProgramData%* OR *C\:\\ProgramData* OR *%TEMP%* OR *\\AppData\\Local\\Temp* OR *\\Windows\\PLA\\System* OR *\\tasks* OR *\\Registration\\CRMLog* OR *\\FxsTmp* OR *\\spool\\drivers\\color* OR *\\tracing*))) OR (winlog.event_id:("4698" OR "4702") AND (winlog.event_data.TaskContent:(*.cmd* OR *.ps1* OR *.vbs* OR *.py* OR *.js* OR *.exe* OR *.bat*) OR winlog.event_data.TaskContent:(*javascript* OR *powershell* OR *wmic* OR *rundll32* OR *cmd* OR *cscript* OR *wscript* OR *regsvr32* OR *mshta* OR *bitsadmin* OR *certutil* OR *msiexec* OR *javaw*) OR winlog.event_data.TaskContent:(*%APPDATA%* OR *\\AppData\\Roaming* OR *%PUBLIC%* OR *C\:\\Users\\Public* OR *%ProgramData%* OR *C\:\\ProgramData* OR *%TEMP%* OR *\\AppData\\Local\\Temp* OR *\\Windows\\PLA\\System* OR *\\tasks* OR *\\Registration\\CRMLog* OR *\\FxsTmp* OR *\\spool\\drivers\\color* OR *\\tracing*)))
+
+Title: LogPoint Search - Scheduled Task creation or modification containing suspicious script, extension or user writable path. (Logpoint)
+((event_id IN ["4688", "1"] CommandLine="*SCHTASKS*" CommandLine IN ["*/CREATE*", "*/CHANGE*"]) (CommandLine IN ["*.cmd*", "*.ps1*", "*.vbs*", "*.py*", "*.js*", "*.exe*", "*.bat*"] OR CommandLine IN ["*javascript*", "*powershell*", "*wmic*", "*rundll32*", "*cmd*", "*cscript*", "*wscript*", "*regsvr32*", "*mshta*", "*bitsadmin*", "*certutil*", "*msiexec*", "*javaw*"] OR CommandLine IN ["*%APPDATA%*", "*\\AppData\\Roaming*", "*%PUBLIC%*", "*C:\\Users\\Public*", "*%ProgramData%*", "*C:\\ProgramData*", "*%TEMP%*", "*\\AppData\\Local\\Temp*", "*\\Windows\\PLA\\System*", "*\\tasks*", "*\\Registration\\CRMLog*", "*\\FxsTmp*", "*\\spool\\drivers\\color*", "*\\tracing*"])) OR (event_id IN ["4698", "4702"] (TaskContent IN ["*.cmd*", "*.ps1*", "*.vbs*", "*.py*", "*.js*", "*.exe*", "*.bat*"] OR TaskContent IN ["*javascript*", "*powershell*", "*wmic*", "*rundll32*", "*cmd*", "*cscript*", "*wscript*", "*regsvr32*", "*mshta*", "*bitsadmin*", "*certutil*", "*msiexec*", "*javaw*"] OR TaskContent IN ["*%APPDATA%*", "*\\AppData\\Roaming*", "*%PUBLIC%*", "*C:\\Users\\Public*", "*%ProgramData%*", "*C:\\ProgramData*", "*%TEMP%*", "*\\AppData\\Local\\Temp*", "*\\Windows\\PLA\\System*", "*\\tasks*", "*\\Registration\\CRMLog*", "*\\FxsTmp*", "*\\spool\\drivers\\color*", "*\\tracing*"]))
+
+Title: Test Case 1
+SCHTASKS /CREATE /SC MINUTE /MO 1 /TN "CALC_TASK" /TR "C:\Windows\System32\calc.exe"
+
+Title: Test Case 2
+SCHTASKS /CREATE /SC MINUTE /MO 1 /TN "PING_TASK" /TR "cmd /c ping 8.8.8.8"
+
+Title: 
+processes = search Process:create
+susp_tasks_processes = filter processes where command_line CONTAINS("*SCHTASKS*") AND (command_line CONTAINS("*/CREATE*") OR command_line CONTAINS("*/CHANGE*")) AND (command_line CONTAINS("*.cmd*") OR command_line CONTAINS("*.ps1*") OR command_line CONTAINS("*.vbs*") OR command_line CONTAINS("*.py*") OR command_line CONTAINS("*.js*") OR command_line CONTAINS("*.exe*") OR command_line CONTAINS("*.bat*") OR (command_line CONTAINS("*javascript*") OR command_line CONTAINS("*powershell*") OR command_line CONTAINS("*wmic*") OR command_line CONTAINS("*rundll32*") OR command_line CONTAINS("*cmd*") OR command_line CONTAINS("*cscript*") OR command_line CONTAINS("*wscript*") OR command_line CONTAINS("*regsvr32*") OR command_line CONTAINS("*mshta*") OR command_line CONTAINS("*bitsadmin*") OR command_line CONTAINS("*certutil*") OR command_line CONTAINS("*msiexec*") OR command_line CONTAINS("*javaw*") OR (command_line CONTAINS("*%APPDATA%*") OR command_line CONTAINS("*\\AppData\\Roaming*") OR command_line CONTAINS("*%PUBLIC%*") OR command_line CONTAINS("*C:\\Users\\Public*") OR command_line CONTAINS("*%ProgramData%*") OR command_line CONTAINS("*C:\\ProgramData*") OR command_line CONTAINS("*%TEMP%*") OR command_line CONTAINS("*\\AppData\\Local\\Temp*") OR command_line CONTAINS("*\\Windows\\PLA\\System*") OR command_line CONTAINS("*\\tasks*") OR command_line CONTAINS("*\\Registration\\CRMLog*") OR command_line CONTAINS("*\\FxsTmp*") OR command_line CONTAINS("*\\spool\\drivers\\color*") OR command_line CONTAINS("*\\tracing*"))))
+tasks = search Task:create
+susp_tasks = filter tasks where (task_content CONTAINS("*.cmd*") OR task_content CONTAINS("*.ps1*") OR task_content CONTAINS("*.vbs*") OR task_content CONTAINS("*.py*") OR task_content CONTAINS("*.js*") OR task_content CONTAINS("*.exe*") OR task_content CONTAINS("*.bat*") OR (task_content CONTAINS("*javascript*") OR task_content CONTAINS("*powershell*") OR task_content CONTAINS("*wmic*") OR task_content CONTAINS("*rundll32*") OR task_content CONTAINS("*cmd*") OR task_content CONTAINS("*cscript*") OR task_content CONTAINS("*wscript*") OR task_content CONTAINS("*regsvr32*") OR task_content CONTAINS("*mshta*") OR task_content CONTAINS("*bitsadmin*") OR task_content CONTAINS("*certutil*") OR task_content CONTAINS("*msiexec*") OR task_content CONTAINS("*javaw*") OR (task_content CONTAINS("*%APPDATA%*") OR task_content CONTAINS("*\\AppData\\Roaming*") OR task_content CONTAINS("*%PUBLIC%*") OR task_content CONTAINS("*C:\\Users\\Public*") OR task_content CONTAINS("*%ProgramData%*") OR task_content CONTAINS("*C:\\ProgramData*") OR task_content CONTAINS("*%TEMP%*") OR task_content CONTAINS("*\\AppData\\Local\\Temp*") OR task_content CONTAINS("*\\Windows\\PLA\\System*") OR task_content CONTAINS("*\\tasks*") OR task_content CONTAINS("*\\Registration\\CRMLog*") OR task_content CONTAINS("*\\FxsTmp*") OR task_content CONTAINS("*\\spool\\drivers\\color*") OR task_content CONTAINS("*\\tracing*"))))
+output susp_tasks_processes, susp_tasks
+
+Title: Splunk Search - Scheduled Task creation or modification containing suspicious script, extension or user writable path. (Splunk)
+(((EventCode="4688" OR EventCode="1") CommandLine="*SCHTASKS*" (CommandLine="*/CREATE*" OR CommandLine="*/CHANGE*")) ((CommandLine="*.cmd*" OR CommandLine="*.ps1*" OR CommandLine="*.vbs*" OR CommandLine="*.py*" OR CommandLine="*.js*" OR CommandLine="*.exe*" OR CommandLine="*.bat*") OR (CommandLine="*javascript*" OR CommandLine="*powershell*" OR CommandLine="*wmic*" OR CommandLine="*rundll32*" OR CommandLine="*cmd*" OR CommandLine="*cscript*" OR CommandLine="*wscript*" OR CommandLine="*regsvr32*" OR CommandLine="*mshta*" OR CommandLine="*bitsadmin*" OR CommandLine="*certutil*" OR CommandLine="*msiexec*" OR CommandLine="*javaw*") OR (CommandLine="*%APPDATA%*" OR CommandLine="*\\AppData\\Roaming*" OR CommandLine="*%PUBLIC%*" OR CommandLine="*C:\\Users\\Public*" OR CommandLine="*%ProgramData%*" OR CommandLine="*C:\\ProgramData*" OR CommandLine="*%TEMP%*" OR CommandLine="*\\AppData\\Local\\Temp*" OR CommandLine="*\\Windows\\PLA\\System*" OR CommandLine="*\\tasks*" OR CommandLine="*\\Registration\\CRMLog*" OR CommandLine="*\\FxsTmp*" OR CommandLine="*\\spool\\drivers\\color*" OR CommandLine="*\\tracing*"))) OR ((EventCode="4698" OR EventCode="4702") ((TaskContent="*.cmd*" OR TaskContent="*.ps1*" OR TaskContent="*.vbs*" OR TaskContent="*.py*" OR TaskContent="*.js*" OR TaskContent="*.exe*" OR TaskContent="*.bat*") OR (TaskContent="*javascript*" OR TaskContent="*powershell*" OR TaskContent="*wmic*" OR TaskContent="*rundll32*" OR TaskContent="*cmd*" OR TaskContent="*cscript*" OR TaskContent="*wscript*" OR TaskContent="*regsvr32*" OR TaskContent="*mshta*" OR TaskContent="*bitsadmin*" OR TaskContent="*certutil*" OR TaskContent="*msiexec*" OR TaskContent="*javaw*") OR (TaskContent="*%APPDATA%*" OR TaskContent="*\\AppData\\Roaming*" OR TaskContent="*%PUBLIC%*" OR TaskContent="*C:\\Users\\Public*" OR TaskContent="*%ProgramData%*" OR TaskContent="*C:\\ProgramData*" OR TaskContent="*%TEMP%*" OR TaskContent="*\\AppData\\Local\\Temp*" OR TaskContent="*\\Windows\\PLA\\System*" OR TaskContent="*\\tasks*" OR TaskContent="*\\Registration\\CRMLog*" OR TaskContent="*\\FxsTmp*" OR TaskContent="*\\spool\\drivers\\color*" OR TaskContent="*\\tracing*")))
+
+Title: Elastic Search - Scheduled Task creation or modification containing suspicious script, extension or user writable path. (Elastic)
+((winlog.event_id:("4688" OR "1") AND process.command_line:*SCHTASKS* AND process.command_line:(*\/CREATE* OR *\/CHANGE*)) AND (process.command_line:(*.cmd* OR *.ps1* OR *.vbs* OR *.py* OR *.js* OR *.exe* OR *.bat*) OR process.command_line:(*javascript* OR *powershell* OR *wmic* OR *rundll32* OR *cmd* OR *cscript* OR *wscript* OR *regsvr32* OR *mshta* OR *bitsadmin* OR *certutil* OR *msiexec* OR *javaw*) OR process.command_line:(*%APPDATA%* OR *\\AppData\\Roaming* OR *%PUBLIC%* OR *C\:\\Users\\Public* OR *%ProgramData%* OR *C\:\\ProgramData* OR *%TEMP%* OR *\\AppData\\Local\\Temp* OR *\\Windows\\PLA\\System* OR *\\tasks* OR *\\Registration\\CRMLog* OR *\\FxsTmp* OR *\\spool\\drivers\\color* OR *\\tracing*))) OR (winlog.event_id:("4698" OR "4702") AND (winlog.event_data.TaskContent:(*.cmd* OR *.ps1* OR *.vbs* OR *.py* OR *.js* OR *.exe* OR *.bat*) OR winlog.event_data.TaskContent:(*javascript* OR *powershell* OR *wmic* OR *rundll32* OR *cmd* OR *cscript* OR *wscript* OR *regsvr32* OR *mshta* OR *bitsadmin* OR *certutil* OR *msiexec* OR *javaw*) OR winlog.event_data.TaskContent:(*%APPDATA%* OR *\\AppData\\Roaming* OR *%PUBLIC%* OR *C\:\\Users\\Public* OR *%ProgramData%* OR *C\:\\ProgramData* OR *%TEMP%* OR *\\AppData\\Local\\Temp* OR *\\Windows\\PLA\\System* OR *\\tasks* OR *\\Registration\\CRMLog* OR *\\FxsTmp* OR *\\spool\\drivers\\color* OR *\\tracing*)))
+
+Title: LogPoint Search - Scheduled Task creation or modification containing suspicious script, extension or user writable path. (Logpoint)
+((event_id IN ["4688", "1"] CommandLine="*SCHTASKS*" CommandLine IN ["*/CREATE*", "*/CHANGE*"]) (CommandLine IN ["*.cmd*", "*.ps1*", "*.vbs*", "*.py*", "*.js*", "*.exe*", "*.bat*"] OR CommandLine IN ["*javascript*", "*powershell*", "*wmic*", "*rundll32*", "*cmd*", "*cscript*", "*wscript*", "*regsvr32*", "*mshta*", "*bitsadmin*", "*certutil*", "*msiexec*", "*javaw*"] OR CommandLine IN ["*%APPDATA%*", "*\\AppData\\Roaming*", "*%PUBLIC%*", "*C:\\Users\\Public*", "*%ProgramData%*", "*C:\\ProgramData*", "*%TEMP%*", "*\\AppData\\Local\\Temp*", "*\\Windows\\PLA\\System*", "*\\tasks*", "*\\Registration\\CRMLog*", "*\\FxsTmp*", "*\\spool\\drivers\\color*", "*\\tracing*"])) OR (event_id IN ["4698", "4702"] (TaskContent IN ["*.cmd*", "*.ps1*", "*.vbs*", "*.py*", "*.js*", "*.exe*", "*.bat*"] OR TaskContent IN ["*javascript*", "*powershell*", "*wmic*", "*rundll32*", "*cmd*", "*cscript*", "*wscript*", "*regsvr32*", "*mshta*", "*bitsadmin*", "*certutil*", "*msiexec*", "*javaw*"] OR TaskContent IN ["*%APPDATA%*", "*\\AppData\\Roaming*", "*%PUBLIC%*", "*C:\\Users\\Public*", "*%ProgramData%*", "*C:\\ProgramData*", "*%TEMP%*", "*\\AppData\\Local\\Temp*", "*\\Windows\\PLA\\System*", "*\\tasks*", "*\\Registration\\CRMLog*", "*\\FxsTmp*", "*\\spool\\drivers\\color*", "*\\tracing*"]))
+
+Title: Test Case 1
+SCHTASKS /CREATE /SC MINUTE /MO 1 /TN "CALC_TASK" /TR "C:\Windows\System32\calc.exe"
+
+Title: Test Case 2
+SCHTASKS /CREATE /SC MINUTE /MO 1 /TN "PING_TASK" /TR "cmd /c ping 8.8.8.8"
+----------------------------------------
+Technique ID: T1059.003
+Kill Chain Phases: execution
+Pseudocode:
+Title: Pseudocode
+process = search Process:Create
+cmd = filter process where (exe == "cmd.exe")
+output cmd
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
+
+Title: 
+process = search Process:Create
+cmd = filter process where (exe == "cmd.exe")
+output cmd
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
+Title: Pseudocode
+processes = search Process:Create
+cmd = filter processes where (exe == "cmd.exe")
+cmd = from cmd select parent_exe
+historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
+current_cmd = filter cmd (where timestamp >= now - 1 day)
+new_cmd = historic_cmd - current_cmd
+output new_cmd
+
+Title: 
+processes = search Process:Create
+cmd = filter processes where (exe == "cmd.exe")
+cmd = from cmd select parent_exe
+historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
+current_cmd = filter cmd (where timestamp >= now - 1 day)
+new_cmd = historic_cmd - current_cmd
+output new_cmd
+----------------------------------------
+Technique ID: T1003.001
+Kill Chain Phases: credential-access
+Pseudocode:
+Title: Pseudocode
+process = search Process:Create
+port_fwd = filter process where (command_line match "-R .* -pw")
+scp = filter process where (command_line match "-pw .* .* .*@.*"
+mimikatz = filter process where (command_line match "sekurlsa")
+rar = filter process where (command_line match " -hp ")
+archive = filter process where (command_line match ".* a .*")
+ip_addr = filter process where (command_line match \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})
+
+output port_fwd, scp, mimikatz, rar, archive, ip_addr
+
+Title: Splunk, Sysmon native
+index=__your_sysmon_index__ EventCode=1 (CommandLine="* -R * -pw*" OR CommandLine="* -pw * *@*" OR CommandLine="*sekurlsa*" OR CommandLine="* -hp *" OR CommandLine="* a *")
+
+Title: Eql, EQL native
+process where subtype.create and
+  (command_line == "* -R * -pw*" or command_line == "* -pw * *@*" or command_line == "*sekurlsa*" or command_line == "* -hp *" or command_line == "* a *")
+
+Title: Splunk, Sysmon native
+index=__your_sysmon_index__ EventCode=1 |regex CommandLine=".*\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}\b.*"
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*(\-r.*\-pw|\-pw.*\@|sekurlsa|\-hp| a |\\d\{1\,3\}\\\.\\d\{1\,3\}\\\.\\d\{1\,3\}).*)i limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 (command="* -R * -pw*" OR command="* -pw * *@*" OR command="*sekurlsa*" OR command="* -hp *" OR command="* a *")
+
+Title: Test Case 1
+putty.exe -pw <password> -R <port>:<host> <user>@<host>
+
+Title: Test Case 2
+7z.exe a test.zip test.txt
+
+Title: 
+process = search Process:Create
+port_fwd = filter process where (command_line match "-R .* -pw")
+scp = filter process where (command_line match "-pw .* .* .*@.*"
+mimikatz = filter process where (command_line match "sekurlsa")
+rar = filter process where (command_line match " -hp ")
+archive = filter process where (command_line match ".* a .*")
+ip_addr = filter process where (command_line match \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})
+
+output port_fwd, scp, mimikatz, rar, archive, ip_addr
+
+Title: Splunk, Sysmon native
+index=__your_sysmon_index__ EventCode=1 (CommandLine="* -R * -pw*" OR CommandLine="* -pw * *@*" OR CommandLine="*sekurlsa*" OR CommandLine="* -hp *" OR CommandLine="* a *")
+
+Title: Eql, EQL native
+process where subtype.create and
+  (command_line == "* -R * -pw*" or command_line == "* -pw * *@*" or command_line == "*sekurlsa*" or command_line == "* -hp *" or command_line == "* a *")
+
+Title: Splunk, Sysmon native
+index=__your_sysmon_index__ EventCode=1 |regex CommandLine=".*\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}\b.*"
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*(\-r.*\-pw|\-pw.*\@|sekurlsa|\-hp| a |\\d\{1\,3\}\\\.\\d\{1\,3\}\\\.\\d\{1\,3\}).*)i limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 (command="* -R * -pw*" OR command="* -pw * *@*" OR command="*sekurlsa*" OR command="* -hp *" OR command="* a *")
+
+Title: Test Case 1
+putty.exe -pw <password> -R <port>:<host> <user>@<host>
+
+Title: Test Case 2
+7z.exe a test.zip test.txt
+Title: Common Mimikatz GrantedAccess Patterns (Splunk, Sysmon native)
+index=__your_sysmon_data__ EventCode=10
+TargetImage="C:\\WINDOWS\\system32\\lsass.exe"
+(GrantedAccess=0x1410 OR GrantedAccess=0x1010 OR GrantedAccess=0x1438 OR GrantedAccess=0x143a OR GrantedAccess=0x1418)
+CallTrace="C:\\windows\\SYSTEM32\\ntdll.dll+*|C:\\windows\\System32\\KERNELBASE.dll+20edd|UNKNOWN(*)"
+| table _time hostname user SourceImage GrantedAccess
+
+Title: Outliers (Splunk, Sysmon native)
+earliest=-d@d latest=now() index=__your_sysmon_data__
+  EventCode=10
+  TargetImage="C:\\WINDOWS\\system32\\lsass.exe"
+  (GrantedAccess=0x1410 OR GrantedAccess=0x1010 OR GrantedAccess=0x1438 OR GrantedAccess=0x143a OR GrantedAccess=0x1418)
+| search NOT [ search earliest=-7d@d latest=-2d@d index=__your_sysmon_data__ EventCode=10 TargetImage="C:\\WINDOWS\\system32\\lsass.exe" (GrantedAccess=0x1410 OR GrantedAccess=0x1010 OR GrantedAccess=0x1438 OR GrantedAccess=0x143a OR GrantedAccess=0x1418)
+  | dedup SourceImage
+  | fields SourceImage ]
+| table  _time hostname user SourceImage GrantedAccess
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=10 image="C:\Windows\system32\lsass.exe" (access="0x1410" OR access="0x1010" OR access="0x1438" OR access="0x143a" OR access="0x1418") call_trace="C:\windows\SYSTEM32\ntdll.dll+*|C:\windows\System32\KERNELBASE.dll+20edd|UNKNOWN(*)"
+| fields log_ts, host, user, source_image, access
+Title: Procdump - Process Create (Pseudocode)
+processes = search Process:Create
+procdump_lsass = filter processes where (
+  exe = "procdump*.exe"  and
+  command_line = "*lsass*")
+output procdump_lsass
+
+Title: Procdump - Process Create (Splunk, Sysmon native)
+index=__your_sysmon_index__ EventCode=1 Image="*\\procdump*.exe" CommandLine="*lsass*"
+
+Title: Procdump - Process Access (Splunk, Sysmon native)
+index=__your_sysmon_index__ EventCode=10 TargetImage="C:\\WINDOWS\\system32\\lsass.exe" GrantedAccess="0x1FFFFF" ("procdump")
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\procdump*.exe" command="*lsass*"
+
+Title: 
+processes = search Process:Create
+procdump_lsass = filter processes where (
+  exe = "procdump*.exe"  and
+  command_line = "*lsass*")
+output procdump_lsass
+
+Title: Procdump - Process Create (Splunk, Sysmon native)
+index=__your_sysmon_index__ EventCode=1 Image="*\\procdump*.exe" CommandLine="*lsass*"
+
+Title: Procdump - Process Access (Splunk, Sysmon native)
+index=__your_sysmon_index__ EventCode=10 TargetImage="C:\\WINDOWS\\system32\\lsass.exe" GrantedAccess="0x1FFFFF" ("procdump")
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\procdump*.exe" command="*lsass*"
+Title: Procdump - File Create (Pseudocode)
+files = search File:Create
+lsass_dump = filter files where (
+  file_name = "lsass*.dmp"  and
+  image_path = "C:\Windows\*\taskmgr.exe")
+output lsass_dump
+
+Title: Procdump - File Create (Splunk, Sysmon native)
+index=__your_sysmon_index__ EventCode=11 TargetFilename="*lsass*.dmp" Image="C:\\Windows\\*\\taskmgr.exe"
+
+Title: Procdump - File Create (Eql, EQL native)
+file where file_name == "lsass*.dmp" and process_name == "taskmgr.exe"
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=11 file="*lsass*.dmp" source_image="C:\Windows\*\taskmgr.exe"
+
+Title: 
+files = search File:Create
+lsass_dump = filter files where (
+  file_name = "lsass*.dmp"  and
+  image_path = "C:\Windows\*\taskmgr.exe")
+output lsass_dump
+
+Title: Procdump - File Create (Splunk, Sysmon native)
+index=__your_sysmon_index__ EventCode=11 TargetFilename="*lsass*.dmp" Image="C:\\Windows\\*\\taskmgr.exe"
+
+Title: Procdump - File Create (Eql, EQL native)
+file where file_name == "lsass*.dmp" and process_name == "taskmgr.exe"
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=11 file="*lsass*.dmp" source_image="C:\Windows\*\taskmgr.exe"
+Title: Pseudocode – Remote thread creation into LSASS (Pseudocode, CAR native)
+remote_threads = search Thread:remote_create
+lsass_remote_create = filter remote_threads where "lsass" in raw event
+output lsass_remote_create
+
+Title: Splunk code (Splunk, )
+`sysmon` EventID=8 TargetImage=*lsass.exe | stats count min(_time) as firstTime max(_time) as lastTime by Computer, EventCode, TargetImage, TargetProcessId | rename Computer as dest
+
+Title: Test Case 1
+python attack_range.py replay -dn data_dump [--dump NAME_OF_DUMP]
+
+Title: Test Case 2
+Invoke-AtomicTest T1003.001
+
+Title: 
+remote_threads = search Thread:remote_create
+lsass_remote_create = filter remote_threads where "lsass" in raw event
+output lsass_remote_create
+
+Title: Splunk code (Splunk, )
+`sysmon` EventID=8 TargetImage=*lsass.exe | stats count min(_time) as firstTime max(_time) as lastTime by Computer, EventCode, TargetImage, TargetProcessId | rename Computer as dest
+
+Title: Test Case 1
+python attack_range.py replay -dn data_dump [--dump NAME_OF_DUMP]
+
+Title: Test Case 2
+Invoke-AtomicTest T1003.001
+----------------------------------------
+Technique ID: T1218.011
+Kill Chain Phases: defense-evasion
+Pseudocode:
+Title: Pseudocode
+process = search Process:Create
+rundll32 = filter process where (exe == "rundll32.exe")
+output rundll32
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=rundll32.exe limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\rundll32.exe"
+
+Title: Test Case 1
+c:\windows\syswow64\rundll32.exe
+RUNDLL32.EXE SHELL32.DLL,Control_RunDLL desk.cpl,,0
+
+Title: 
+process = search Process:Create
+rundll32 = filter process where (exe == "rundll32.exe")
+output rundll32
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=rundll32.exe limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\rundll32.exe"
+
+Title: Test Case 1
+c:\windows\syswow64\rundll32.exe
+RUNDLL32.EXE SHELL32.DLL,Control_RunDLL desk.cpl,,0
+----------------------------------------
+Technique ID: T1569.002
+Kill Chain Phases: execution
+Pseudocode:
+Title: Pseudocode
+processes = search Process:Create
+reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+ or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+ or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+ or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+ or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+ or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+ or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+ or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+ or exe == "wscript.exe" or exe == "xcopy.exe")
+reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+output reg_grouped
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+>>_agg count
+>>_checkif int_compare Count > 1 include
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+| chart count() as cnt by host
+| search cnt > 1
+
+Title: Test Case 1
+ipconfig /all
+hostname
+systeminfo
+reg.exe Query HKLM\Software\Microsoft
+
+Title: 
+processes = search Process:Create
+reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+ or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+ or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+ or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+ or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+ or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+ or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+ or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+ or exe == "wscript.exe" or exe == "xcopy.exe")
+reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+output reg_grouped
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+>>_agg count
+>>_checkif int_compare Count > 1 include
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+| chart count() as cnt by host
+| search cnt > 1
+
+Title: Test Case 1
+ipconfig /all
+hostname
+systeminfo
+reg.exe Query HKLM\Software\Microsoft
+Title: Pseudocode
+legitimate_installers = ["C:\windows\system32\msiexec.exe", "C:\windows\syswow64\msiexec.exe", ...]
+
+file_change = search File:Create,Modify
+process = search Process:Create
+service_process = filter processes where (parent_exe == "services.exe")
+modified_service = join (search, filter) where (
+ file_change.time < service_process.time and
+ file_change.file_path == service_process.image_path
+)
+
+modified_service = filter modified_service where (modified_service.file_change.image_path not in legitimate_installers)
+output modified_service
+
+Title: 
+legitimate_installers = ["C:\windows\system32\msiexec.exe", "C:\windows\syswow64\msiexec.exe", ...]
+
+file_change = search File:Create,Modify
+process = search Process:Create
+service_process = filter processes where (parent_exe == "services.exe")
+modified_service = join (search, filter) where (
+ file_change.time < service_process.time and
+ file_change.file_path == service_process.image_path
+)
+
+modified_service = filter modified_service where (modified_service.file_change.image_path not in legitimate_installers)
+output modified_service
+Title: Pseudocode
+process = search Process:Create
+flow = search Flow:Start
+service = filter process where (parent_exe == "services.exe")
+remote_start = join (flow, service ) where (
+ flow.hostname == service.hostname and
+ flow.pid == service.pid and
+ (flow.time < service.time < flow.time + 1 second)
+)
+output remote_start
+
+Title: 
+process = search Process:Create
+flow = search Flow:Start
+service = filter process where (parent_exe == "services.exe")
+remote_start = join (flow, service ) where (
+ flow.hostname == service.hostname and
+ flow.pid == service.pid and
+ (flow.time < service.time < flow.time + 1 second)
+)
+output remote_start
+Title: Pseudocode – Service in Suspicious File Path (Pseudocode, CAR native)
+services = search Service:create
+suspicious_services = filter services where image_path = "*\.exe" AND image_path does not contain ["C:\\Windows\\*", "%windir%\\*", "C:\\Program File*", "C:\\Programdata\\*", "%systemroot%\\*"] )
+output suspicious_services
+
+Title: Splunk code (Splunk, Endpoint)
+`wineventlog_system` EventCode=7045  Service_File_Name = "*\.exe" NOT (Service_File_Name IN ("C:\\Windows\\*", "%windir%\\*", "C:\\Program File*", "C:\\Programdata\\*", "%systemroot%\\*")) Service_Type = "user mode service" | stats count min(_time) as firstTime max(_time) as lastTime by EventCode Service_File_Name Service_Name Service_Start_Type Service_Type
+
+Title: Test Case 1
+python attack_range.py replay -dn data_dump [--dump NAME_OF_DUMP]
+
+Title: Test Case 2
+Invoke-AtomicTest T1569.001
+
+Title: 
+services = search Service:create
+suspicious_services = filter services where image_path = "*\.exe" AND image_path does not contain ["C:\\Windows\\*", "%windir%\\*", "C:\\Program File*", "C:\\Programdata\\*", "%systemroot%\\*"] )
+output suspicious_services
+
+Title: Splunk code (Splunk, Endpoint)
+`wineventlog_system` EventCode=7045  Service_File_Name = "*\.exe" NOT (Service_File_Name IN ("C:\\Windows\\*", "%windir%\\*", "C:\\Program File*", "C:\\Programdata\\*", "%systemroot%\\*")) Service_Type = "user mode service" | stats count min(_time) as firstTime max(_time) as lastTime by EventCode Service_File_Name Service_Name Service_Start_Type Service_Type
+
+Title: Test Case 1
+python attack_range.py replay -dn data_dump [--dump NAME_OF_DUMP]
+
+Title: Test Case 2
+Invoke-AtomicTest T1569.001
+----------------------------------------
+Technique ID: T1021.001
+Kill Chain Phases: lateral-movement
+Pseudocode:
+Title: Pseudocode
+flow_start = search Flow:Start
+flow_end = search Flow:End
+rdp_start = filter flow_start where (port == "3389")
+rdp_end = filter flow_start where (port == "3389")
+rdp = group flow_start, flow_end by src_ip, src_port, dest_ip, dest_port
+output rdp
+
+Title: 
+flow_start = search Flow:Start
+flow_end = search Flow:End
+rdp_start = filter flow_start where (port == "3389")
+rdp_end = filter flow_start where (port == "3389")
+rdp = group flow_start, flow_end by src_ip, src_port, dest_ip, dest_port
+output rdp
+Title: Account Logon with Filtering (Pseudocode)
+logon_events = search User_Session:Login
+filtered_logons = filter logon_events where (
+  user NOT IN TOP30(user))
+output filtered_logons
+
+Title: Account Logon with Filtering (Splunk)
+index=__your_win_event_log_index__ EventCode=4624|search NOT [search index=__your_win_event_log_index__ EventCode=4624|top 30 Account_Name|table Account_Name]
+
+Title: Account Logon with Filtering (Dnif, Sysmon native)
+_fetch * from event where $LogName=WINDOWS-NXLOG-AUDIT AND $SubSystem=AUTHENTICATION AND $Action=LOGIN group count_unique $ScopeID, $User limit 30
+>>_store in_disk david_test win_top_30 stack_replace
+>>_fetch * from event where $LogName=WINDOWS-NXLOG-AUDIT AND $SubSystem=AUTHENTICATION AND $Action=LOGIN limit 10000
+>>_checkif lookup david_test win_top_30 join $ScopeID = $ScopeID str_compare $User eq $User exclude
+
+Title: 
+logon_events = search User_Session:Login
+filtered_logons = filter logon_events where (
+  user NOT IN TOP30(user))
+output filtered_logons
+
+Title: Account Logon with Filtering (Splunk)
+index=__your_win_event_log_index__ EventCode=4624|search NOT [search index=__your_win_event_log_index__ EventCode=4624|top 30 Account_Name|table Account_Name]
+
+Title: Account Logon with Filtering (Dnif, Sysmon native)
+_fetch * from event where $LogName=WINDOWS-NXLOG-AUDIT AND $SubSystem=AUTHENTICATION AND $Action=LOGIN group count_unique $ScopeID, $User limit 30
+>>_store in_disk david_test win_top_30 stack_replace
+>>_fetch * from event where $LogName=WINDOWS-NXLOG-AUDIT AND $SubSystem=AUTHENTICATION AND $Action=LOGIN limit 10000
+>>_checkif lookup david_test win_top_30 join $ScopeID = $ScopeID str_compare $User eq $User exclude
+Title: Pseudocode
+[EventCode] == 4624 and
+[AuthenticationPackageName] == 'Negotiate' and
+[Severity] == "Information" and
+[LogonType] == 10
+
+Title: Logpoint, LogPoint native
+norm_id=WinServer event_id=4624 package="Negotiate" log_level="INFO" logon_type=10
+
+Title: 
+[EventCode] == 4624 and
+[AuthenticationPackageName] == 'Negotiate' and
+[Severity] == "Information" and
+[LogonType] == 10
+
+Title: Logpoint, LogPoint native
+norm_id=WinServer event_id=4624 package="Negotiate" log_level="INFO" logon_type=10
+----------------------------------------
+Technique ID: T1218.010
+Kill Chain Phases: defense-evasion
+Pseudocode:
+Title: Main Pattern (Splunk, Sysmon native)
+index=__your_sysmon_data__ EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*"
+
+Title: Main Pattern - pseudocode (Pseudocode, CAR)
+processes = search Process:Create
+regsvr_processes = filter processes where (
+  parent_image_path == "*regsvr32.exe" and image_path != "*regsvr32.exe*"
+ )
+output regsvr_processes
+
+Title: New items since last month (Splunk, Sysmon native)
+index=__your_sysmon_data__ earliest=-d@d latest=now() EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*" | search NOT [
+search index=__your_sysmon_data__ earliest=-60d@d latest=-30d@d EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*" | dedup CommandLine | fields CommandLine ]
+
+Title: Spawning child processes (Splunk, Sysmon native)
+index=__your_sysmon_data__ EventCode=1 (ParentImage="C:\\Windows\\System32\\regsvr32.exe" OR ParentImage="C:\\Windows\\SysWOW64\\regsvr32.exe") AND Image!="C:\\Windows\\System32\\regsvr32.exe" AND Image!="C:\\Windows\\SysWOW64\\regsvr32.exe" AND Image!="C:\\WINDOWS\\System32\\regsvr32.exe" AND Image!="C:\\WINDOWS\\SysWOW64\\regsvr32.exe" AND Image!="C:\\Windows\\SysWOW64\\WerFault.exe" AND Image!="C:\\Windows\\System32\\wevtutil.exe" AND Image!="C:\\Windows\\System32\\WerFault.exe"|stats values(ComputerName) as "Computer Name" values(ParentCommandLine) as "Parent Command Line" count(Image) as ImageCount by Image
+
+Title: Spawning child processes - pseudocode (Pseudocode, CAR)
+processes = search Process:Create
+regsvr_processes = filter processes where (
+  (parent_image_path == "C:\Windows\System32\regsvr32.exe" or parent_image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+  image_path != "C:\Windows\System32\regsvr32.exe" and
+  image_path != "C:\Windows\SysWOW64\regsvr32.exe" and
+  image_path != "C:\Windows\SysWOW64\WerFault.exe" and
+  image_path != "C:\Windows\System32\WerFault.exe" and
+  image_path != "C:\Windows\System32\wevtutil.exe"
+ )
+output regsvr_processes
+
+Title: Loading unsigned images (Splunk, Sysmon native)
+index=__your_sysmon_data__ EventCode=7 (Image="C:\\Windows\\System32\\regsvr32.exe" OR Image="C:\\Windows\\SysWOW64\\regsvr32.exe") Signed=false ImageLoaded!="C:\\Program Files*" ImageLoaded!="C:\\Windows\\*"|stats values(ComputerName) as "Computer Name" count(ImageLoaded) as ImageLoadedCount by ImageLoaded
+
+Title: Loading unsigned images - pseudocode (Pseudocode, CAR)
+modules = search Module:Load
+unsigned_modules = filter modules where (
+  (image_path == "C:\Windows\System32\regsvr32.exe" or image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+  signer == null and
+  module_path != "C:\Program Files*" and
+  module_path != "C:\Windows\*"
+)
+output unsigned_modules
+
+Title: 
+processes = search Process:Create
+regsvr_processes = filter processes where (
+  parent_image_path == "*regsvr32.exe" and image_path != "*regsvr32.exe*"
+ )
+output regsvr_processes
+
+Title: New items since last month (Splunk, Sysmon native)
+index=__your_sysmon_data__ earliest=-d@d latest=now() EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*" | search NOT [
+search index=__your_sysmon_data__ earliest=-60d@d latest=-30d@d EventCode=1 regsvr32.exe | search ParentImage="*regsvr32.exe" AND Image!="*regsvr32.exe*" | dedup CommandLine | fields CommandLine ]
+
+Title: Spawning child processes (Splunk, Sysmon native)
+index=__your_sysmon_data__ EventCode=1 (ParentImage="C:\\Windows\\System32\\regsvr32.exe" OR ParentImage="C:\\Windows\\SysWOW64\\regsvr32.exe") AND Image!="C:\\Windows\\System32\\regsvr32.exe" AND Image!="C:\\Windows\\SysWOW64\\regsvr32.exe" AND Image!="C:\\WINDOWS\\System32\\regsvr32.exe" AND Image!="C:\\WINDOWS\\SysWOW64\\regsvr32.exe" AND Image!="C:\\Windows\\SysWOW64\\WerFault.exe" AND Image!="C:\\Windows\\System32\\wevtutil.exe" AND Image!="C:\\Windows\\System32\\WerFault.exe"|stats values(ComputerName) as "Computer Name" values(ParentCommandLine) as "Parent Command Line" count(Image) as ImageCount by Image
+
+Title: Spawning child processes - pseudocode (Pseudocode, CAR)
+processes = search Process:Create
+regsvr_processes = filter processes where (
+  (parent_image_path == "C:\Windows\System32\regsvr32.exe" or parent_image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+  image_path != "C:\Windows\System32\regsvr32.exe" and
+  image_path != "C:\Windows\SysWOW64\regsvr32.exe" and
+  image_path != "C:\Windows\SysWOW64\WerFault.exe" and
+  image_path != "C:\Windows\System32\WerFault.exe" and
+  image_path != "C:\Windows\System32\wevtutil.exe"
+ )
+output regsvr_processes
+
+Title: Loading unsigned images (Splunk, Sysmon native)
+index=__your_sysmon_data__ EventCode=7 (Image="C:\\Windows\\System32\\regsvr32.exe" OR Image="C:\\Windows\\SysWOW64\\regsvr32.exe") Signed=false ImageLoaded!="C:\\Program Files*" ImageLoaded!="C:\\Windows\\*"|stats values(ComputerName) as "Computer Name" count(ImageLoaded) as ImageLoadedCount by ImageLoaded
+
+Title: Loading unsigned images - pseudocode (Pseudocode, CAR)
+modules = search Module:Load
+unsigned_modules = filter modules where (
+  (image_path == "C:\Windows\System32\regsvr32.exe" or image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+  signer == null and
+  module_path != "C:\Program Files*" and
+  module_path != "C:\Windows\*"
+)
+output unsigned_modules
+
+Title: 
+processes = search Process:Create
+regsvr_processes = filter processes where (
+  (parent_image_path == "C:\Windows\System32\regsvr32.exe" or parent_image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+  image_path != "C:\Windows\System32\regsvr32.exe" and
+  image_path != "C:\Windows\SysWOW64\regsvr32.exe" and
+  image_path != "C:\Windows\SysWOW64\WerFault.exe" and
+  image_path != "C:\Windows\System32\WerFault.exe" and
+  image_path != "C:\Windows\System32\wevtutil.exe"
+ )
+output regsvr_processes
+
+Title: Loading unsigned images (Splunk, Sysmon native)
+index=__your_sysmon_data__ EventCode=7 (Image="C:\\Windows\\System32\\regsvr32.exe" OR Image="C:\\Windows\\SysWOW64\\regsvr32.exe") Signed=false ImageLoaded!="C:\\Program Files*" ImageLoaded!="C:\\Windows\\*"|stats values(ComputerName) as "Computer Name" count(ImageLoaded) as ImageLoadedCount by ImageLoaded
+
+Title: Loading unsigned images - pseudocode (Pseudocode, CAR)
+modules = search Module:Load
+unsigned_modules = filter modules where (
+  (image_path == "C:\Windows\System32\regsvr32.exe" or image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+  signer == null and
+  module_path != "C:\Program Files*" and
+  module_path != "C:\Windows\*"
+)
+output unsigned_modules
+
+Title: 
+modules = search Module:Load
+unsigned_modules = filter modules where (
+  (image_path == "C:\Windows\System32\regsvr32.exe" or image_path == "C:\Windows\SysWOW64\regsvr32.exe") and
+  signer == null and
+  module_path != "C:\Program Files*" and
+  module_path != "C:\Windows\*"
+)
+output unsigned_modules
+Title: Splunk, Sysmon native
+index=__your_sysmon_events__ EventCode=1 regsvr32.exe scrobj.dll | search Image="*regsvr32.exe"
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_path == "*regsvr32.exe" and command_line == "*scrobj.dll")
+
+Title: Psuedocode, CAR
+processes = search Process:Create
+squiblydoo_processes = filter processes where (
+  image_path == "*regsvr32.exe" and command_line == "*scrobj.dll"
+  )
+output squiblydoo_processes
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\regsvr32.exe" command="*scrobj.dll"
+----------------------------------------
+Technique ID: T1021.002
+Kill Chain Phases: lateral-movement
+Pseudocode:
+Title: Pseudocode
+flow = search Flow:Message
+smb_events = filter flow where (dest_port == "445" and protocol == "smb")
+smb_events.file_name = smb_events.proto_info.file_name
+output smb_write
+
+Title: 
+flow = search Flow:Message
+smb_events = filter flow where (dest_port == "445" and protocol == "smb")
+smb_events.file_name = smb_events.proto_info.file_name
+output smb_write
+Title: Pseudocode
+processes = search Process:Create
+reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+ or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+ or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+ or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+ or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+ or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+ or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+ or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+ or exe == "wscript.exe" or exe == "xcopy.exe")
+reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+output reg_grouped
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+>>_agg count
+>>_checkif int_compare Count > 1 include
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+| chart count() as cnt by host
+| search cnt > 1
+
+Title: Test Case 1
+ipconfig /all
+hostname
+systeminfo
+reg.exe Query HKLM\Software\Microsoft
+
+Title: 
+processes = search Process:Create
+reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+ or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+ or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+ or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+ or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+ or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+ or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+ or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+ or exe == "wscript.exe" or exe == "xcopy.exe")
+reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+output reg_grouped
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+>>_agg count
+>>_checkif int_compare Count > 1 include
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+| chart count() as cnt by host
+| search cnt > 1
+
+Title: Test Case 1
+ipconfig /all
+hostname
+systeminfo
+reg.exe Query HKLM\Software\Microsoft
+Title: Pseudocode
+flow = search Flow:Message
+smb_write = filter flow where (dest_port == "445" and protocol == "smb.write")
+smb_write.file_name = smb_write.proto_info.file_name
+output smb_write
+
+Title: 
+flow = search Flow:Message
+smb_write = filter flow where (dest_port == "445" and protocol == "smb.write")
+smb_write.file_name = smb_write.proto_info.file_name
+output smb_write
+Title: Pseudocode
+process = search Process:Create
+smb_write = run Analytic:CAR-2013-05-003
+remote_start = join (smb_write, process) where (
+ smb_write.hostname == process.hostname and
+ smb_write.file_path == process.image_path
+ (smb_write.time < process.time)
+)
+output remote_start
+
+Title: 
+process = search Process:Create
+smb_write = run Analytic:CAR-2013-05-003
+remote_start = join (smb_write, process) where (
+ smb_write.hostname == process.hostname and
+ smb_write.file_path == process.image_path
+ (smb_write.time < process.time)
+)
+output remote_start
+Title: Pseudocode
+flows = search Flow:Start
+rpc_mapper = filter flows where (dest_port == 135)
+rpc_endpoint = filter flows where (dest_port >= 49152 and src_port >= 49152)
+rpc = join rpc_mapper, rpc_endpoint where (
+ (rpc_mapper.time < rpc_endpoint.time < rpc_mapper.time + 2 seconds) and
+ (rpc_mapper.src_ip == rpc_endpoint.src_ip and rpc_mapper.dest_ip == rpc_endpoint.dest_ip)
+)
+output rpc
+
+Title: 
+flows = search Flow:Start
+rpc_mapper = filter flows where (dest_port == 135)
+rpc_endpoint = filter flows where (dest_port >= 49152 and src_port >= 49152)
+rpc = join rpc_mapper, rpc_endpoint where (
+ (rpc_mapper.time < rpc_endpoint.time < rpc_mapper.time + 2 seconds) and
+ (rpc_mapper.src_ip == rpc_endpoint.src_ip and rpc_mapper.dest_ip == rpc_endpoint.dest_ip)
+)
+output rpc
+----------------------------------------
+Technique ID: T1036.005
+Kill Chain Phases: defense-evasion
+Pseudocode:
+Title: Pseudocode - Common Windows Process Masquerading (Pseudocode, CAR native)
+processes = search Process:*
+suspicious_processes = filter processes where (
+  (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
+  OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
+  OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
+  OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
+  OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
+  OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
+  OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
+  OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
+  OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
+  OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
+  )
+output suspicious_processes
+
+Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
+index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
+(process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
+OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
+OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
+OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
+OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
+OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
+OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
+OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
+OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
+OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
+)
+
+Title: 
+processes = search Process:*
+suspicious_processes = filter processes where (
+  (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
+  OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
+  OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
+  OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
+  OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
+  OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
+  OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
+  OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
+  OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
+  OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
+  )
+output suspicious_processes
+
+Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
+index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
+(process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
+OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
+OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
+OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
+OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
+OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
+OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
+OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
+OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
+OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
+)
+----------------------------------------

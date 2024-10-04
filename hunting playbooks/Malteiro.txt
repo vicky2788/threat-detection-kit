@@ -1,0 +1,109 @@
+Technique ID: T1055.001
+Kill Chain Phases: defense-evasion, privilege-escalation
+Pseudocode:
+Title: Pseudocode
+remote_thread = search Thread:RemoteCreate
+remote_thread = filter (start_function == "LoadLibraryA" or start_function == "LoadLibraryW")
+remote_thread = filter (src_image_path != "C:\Path\To\TrustedProgram.exe")
+
+output remote_thread
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=8 start_function IN ["LoadLibraryA", "LoadLibraryW"] -source_image="C:\Path\To\TrustedProgram.exe"
+
+Title: 
+remote_thread = search Thread:RemoteCreate
+remote_thread = filter (start_function == "LoadLibraryA" or start_function == "LoadLibraryW")
+remote_thread = filter (src_image_path != "C:\Path\To\TrustedProgram.exe")
+
+output remote_thread
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=8 start_function IN ["LoadLibraryA", "LoadLibraryW"] -source_image="C:\Path\To\TrustedProgram.exe"
+Title: Pseudocode - mavinject process and its common argument (Pseudocode, CAR native)
+processes = search Process:Create
+mavinject_processes = filter processes where (
+  exe = "C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR command_line = "*/INJECTRUNNING*"
+output mavinject_processes
+
+Title: Splunk Search - mavinject (Splunk, Sysmon native)
+(index=__your_sysmon_index__ EventCode=1) (Image="C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR CommandLine="*\INJECTRUNNING*")
+
+Title: LogPoint Search - mavinject (Logpoint, LogPoint native)
+norm_id=WindowsSysmon event_id=1 (image="C:\Windows\SysWOW64\mavinject.exe" OR image="C:\Windows\System32\mavinject.exe" OR command="*\INJECTRUNNING*")
+
+Title: 
+processes = search Process:Create
+mavinject_processes = filter processes where (
+  exe = "C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR command_line = "*/INJECTRUNNING*"
+output mavinject_processes
+
+Title: Splunk Search - mavinject (Splunk, Sysmon native)
+(index=__your_sysmon_index__ EventCode=1) (Image="C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR CommandLine="*\INJECTRUNNING*")
+
+Title: LogPoint Search - mavinject (Logpoint, LogPoint native)
+norm_id=WindowsSysmon event_id=1 (image="C:\Windows\SysWOW64\mavinject.exe" OR image="C:\Windows\System32\mavinject.exe" OR command="*\INJECTRUNNING*")
+----------------------------------------
+Technique ID: T1059.005
+Kill Chain Phases: execution
+Pseudocode:
+Title: Pseudocode
+processes = search Process:Create
+reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+ or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+ or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+ or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+ or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+ or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+ or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+ or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+ or exe == "wscript.exe" or exe == "xcopy.exe")
+reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+output reg_grouped
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+>>_agg count
+>>_checkif int_compare Count > 1 include
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+| chart count() as cnt by host
+| search cnt > 1
+
+Title: Test Case 1
+ipconfig /all
+hostname
+systeminfo
+reg.exe Query HKLM\Software\Microsoft
+
+Title: 
+processes = search Process:Create
+reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+ or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+ or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+ or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+ or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+ or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+ or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+ or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+ or exe == "wscript.exe" or exe == "xcopy.exe")
+reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+output reg_grouped
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+>>_agg count
+>>_checkif int_compare Count > 1 include
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+| chart count() as cnt by host
+| search cnt > 1
+
+Title: Test Case 1
+ipconfig /all
+hostname
+systeminfo
+reg.exe Query HKLM\Software\Microsoft
+----------------------------------------

@@ -1,0 +1,206 @@
+Technique ID: T1059.003
+Kill Chain Phases: execution
+Pseudocode:
+Title: Pseudocode
+process = search Process:Create
+cmd = filter process where (exe == "cmd.exe")
+output cmd
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
+
+Title: 
+process = search Process:Create
+cmd = filter process where (exe == "cmd.exe")
+output cmd
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
+Title: Pseudocode
+processes = search Process:Create
+cmd = filter processes where (exe == "cmd.exe")
+cmd = from cmd select parent_exe
+historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
+current_cmd = filter cmd (where timestamp >= now - 1 day)
+new_cmd = historic_cmd - current_cmd
+output new_cmd
+
+Title: 
+processes = search Process:Create
+cmd = filter processes where (exe == "cmd.exe")
+cmd = from cmd select parent_exe
+historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
+current_cmd = filter cmd (where timestamp >= now - 1 day)
+new_cmd = historic_cmd - current_cmd
+output new_cmd
+----------------------------------------
+Technique ID: T1036.005
+Kill Chain Phases: defense-evasion
+Pseudocode:
+Title: Pseudocode - Common Windows Process Masquerading (Pseudocode, CAR native)
+processes = search Process:*
+suspicious_processes = filter processes where (
+  (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
+  OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
+  OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
+  OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
+  OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
+  OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
+  OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
+  OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
+  OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
+  OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
+  )
+output suspicious_processes
+
+Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
+index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
+(process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
+OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
+OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
+OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
+OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
+OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
+OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
+OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
+OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
+OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
+)
+
+Title: 
+processes = search Process:*
+suspicious_processes = filter processes where (
+  (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
+  OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
+  OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
+  OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
+  OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
+  OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
+  OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
+  OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
+  OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
+  OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
+  )
+output suspicious_processes
+
+Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
+index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
+(process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
+OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
+OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
+OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
+OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
+OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
+OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
+OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
+OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
+OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
+)
+----------------------------------------
+Technique ID: T1547.001
+Kill Chain Phases: persistence, privilege-escalation
+Pseudocode:
+Title: Pseudocode
+processes = search Process:Create
+reg = filter processes where (exe == "reg.exe" and parent_exe == "cmd.exe")
+cmd = filter processes where (exe == "cmd.exe" and parent_exe != "explorer.exe"")
+reg_and_cmd = join (reg, cmd) where (reg.ppid == cmd.pid and reg.hostname == cmd.hostname)
+output reg_and_cmd
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*reg\.exe.*)i AND $ParentProcess=regex(.*cmd\.exe.*)i as #A limit 100
+>>_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i NOT $ParentProcess=regex(.*explorer\.exe.*)i as #B limit 100
+>>_checkif sjoin #B.$PPID = #A.$CPID str_compare #B.$SystemName eq #A.$SystemName include
+
+Title: Test Case 1
+reg.exe QUERY HKLM\Software\Microsoft
+
+Title: 
+processes = search Process:Create
+reg = filter processes where (exe == "reg.exe" and parent_exe == "cmd.exe")
+cmd = filter processes where (exe == "cmd.exe" and parent_exe != "explorer.exe"")
+reg_and_cmd = join (reg, cmd) where (reg.ppid == cmd.pid and reg.hostname == cmd.hostname)
+output reg_and_cmd
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*reg\.exe.*)i AND $ParentProcess=regex(.*cmd\.exe.*)i as #A limit 100
+>>_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i NOT $ParentProcess=regex(.*explorer\.exe.*)i as #B limit 100
+>>_checkif sjoin #B.$PPID = #A.$CPID str_compare #B.$SystemName eq #A.$SystemName include
+
+Title: Test Case 1
+reg.exe QUERY HKLM\Software\Microsoft
+Title: LolBAS Rare Commands (Pseudocode, CAR native)
+processes = search Process:Create
+lolbas_processes = filter processes where (exe = "At.exe" OR exe = "Atbroker.exe" OR exe = "Bash.exe" OR exe = "Bitsadmin.exe" OR exe = "Certutil.exe" OR exe = "Cmd.exe" OR exe = "Cmdkey.exe" OR exe = "Cmstp.exe" OR exe = "Control.exe" OR exe = "Csc.exe" OR exe = "Cscript.exe" OR exe = "Dfsvc.exe" OR exe = "Diskshadow.exe" OR exe = "Dnscmd.exe" OR exe = "Esentutl.exe" OR exe = "Eventvwr.exe" OR exe = "Expand.exe" OR exe = "Extexport.exe" OR exe = "Extrac32.exe" OR exe = "Findstr.exe" OR exe = "Forfiles.exe" OR exe = "Ftp.exe" OR exe = "Gpscript.exe" OR exe = "Hh.exe" OR exe = "Ie4uinit.exe" OR exe = "Ieexec.exe" OR exe = "Infdefaultinstall.exe" OR exe = "Installutil.exe" OR exe = "Jsc.exe" OR exe = "Makecab.exe" OR exe = "Mavinject.exe" OR exe = "Microsoft.Workflow.r.exe" OR exe = "Mmc.exe" OR exe = "Msbuild.exe" OR exe = "Msconfig.exe" OR exe = "Msdt.exe" OR exe = "Mshta.exe" OR exe = "Msiexec.exe" OR exe = "Odbcconf.exe" OR exe = "Pcalua.exe" OR exe = "Pcwrun.exe" OR exe = "Presentationhost.exe" OR exe = "Print.exe" OR exe = "Reg.exe" OR exe = "Regasm.exe" OR exe = "Regedit.exe" OR exe = "Register-cimprovider.exe" OR exe = "Regsvcs.exe" OR exe = "Regsvr32.exe" OR exe = "Replace.exe" OR exe = "Rpcping.exe" OR exe = "Rundll32.exe" OR exe = "Runonce.exe" OR exe = "Runscripthelper.exe" OR exe = "Sc.exe" OR exe = "Schtasks.exe" OR exe = "Scriptrunner.exe" OR exe = "SyncAppvPublishingServer.exe" OR exe = "Tttracer.exe" OR exe = "Verclsid.exe" OR exe = "Wab.exe" OR exe = "Wmic.exe" OR exe = "Wscript.exe" OR exe = "Wsreset.exe" OR exe = "Xwizard.exe" OR exe = "Advpack.dll OR exe = "Comsvcs.dll OR exe = "Ieadvpack.dll OR exe = "Ieaframe.dll OR exe = "Mshtml.dll OR exe = "Pcwutl.dll OR exe = "Setupapi.dll OR exe = "Shdocvw.dll OR exe = "Shell32.dll OR exe = "Syssetup.dll OR exe = "Url.dll OR exe = "Zipfldr.dll OR exe = "Appvlp.exe" OR exe = "Bginfo.exe" OR exe = "Cdb.exe" OR exe = "csi.exe" OR exe = "Devtoolslauncher.exe" OR exe = "dnx.exe" OR exe = "Dxcap.exe" OR exe = "Excel.exe" OR exe = "Mftrace.exe" OR exe = "Msdeploy.exe" OR exe = "msxsl.exe" OR exe = "Powerpnt.exe" OR exe = "rcsi.exe" OR exe = "Sqler.exe" OR exe = "Sqlps.exe" OR exe = "SQLToolsPS.exe" OR exe = "Squirrel.exe" OR exe = "te.exe" OR exe = "Tracker.exe" OR exe = "Update.exe" OR exe = "vsjitdebugger.exe" OR exe = "Winword.exe" OR exe = "Wsl.exe" OR exe = "CL_Mutexverifiers.ps1 OR exe = "CL_Invocation.ps1 OR exe = "Manage-bde.wsf OR exe = "Pubprn.vbs OR exe = "Slmgr.vbs OR exe = "Syncappvpublishingserver.vbs OR exe = "winrm.vbs OR exe = "Pester.bat)
+process_count = count(lolbas_processes) by process
+process_count_avg = average(process_count)
+process_count_stdev = standard_deviation(process_count)
+lower_bound = process_count_avg - stdev * 1.5
+outliers = filter lolbas_processes where (process_count < lower_bound)
+return outliers
+
+Title: LolBAS Rare Commands (Splunk, Sysmon native)
+index=__your_sysmon_index__ EventCode=1 (OriginalFileName = At.exe OR OriginalFileName = Atbroker.exe OR OriginalFileName = Bash.exe OR OriginalFileName = Bitsadmin.exe OR OriginalFileName = Certutil.exe OR OriginalFileName = Cmd.exe OR OriginalFileName = Cmdkey.exe OR OriginalFileName = Cmstp.exe OR OriginalFileName = Control.exe OR OriginalFileName = Csc.exe OR OriginalFileName = Cscript.exe OR OriginalFileName = Dfsvc.exe OR OriginalFileName = Diskshadow.exe OR OriginalFileName = Dnscmd.exe OR OriginalFileName = Esentutl.exe OR OriginalFileName = Eventvwr.exe OR OriginalFileName = Expand.exe OR OriginalFileName = Extexport.exe OR OriginalFileName = Extrac32.exe OR OriginalFileName = Findstr.exe OR OriginalFileName = Forfiles.exe OR OriginalFileName = Ftp.exe OR OriginalFileName = Gpscript.exe OR OriginalFileName = Hh.exe OR OriginalFileName = Ie4uinit.exe OR OriginalFileName = Ieexec.exe OR OriginalFileName = Infdefaultinstall.exe OR OriginalFileName = Installutil.exe OR OriginalFileName = Jsc.exe OR OriginalFileName = Makecab.exe OR OriginalFileName = Mavinject.exe OR OriginalFileName = Microsoft.Workflow.r.exe OR OriginalFileName = Mmc.exe OR OriginalFileName = Msbuild.exe OR OriginalFileName = Msconfig.exe OR OriginalFileName = Msdt.exe OR OriginalFileName = Mshta.exe OR OriginalFileName = Msiexec.exe OR OriginalFileName = Odbcconf.exe OR OriginalFileName = Pcalua.exe OR OriginalFileName = Pcwrun.exe OR OriginalFileName = Presentationhost.exe OR OriginalFileName = Print.exe OR OriginalFileName = Reg.exe OR OriginalFileName = Regasm.exe OR OriginalFileName = Regedit.exe OR OriginalFileName = Register-cimprovider.exe OR OriginalFileName = Regsvcs.exe OR OriginalFileName = Regsvr32.exe OR OriginalFileName = Replace.exe OR OriginalFileName = Rpcping.exe OR OriginalFileName = Rundll32.exe OR OriginalFileName = Runonce.exe OR OriginalFileName = Runscripthelper.exe OR OriginalFileName = Sc.exe OR OriginalFileName = Schtasks.exe OR OriginalFileName = Scriptrunner.exe OR OriginalFileName = SyncAppvPublishingServer.exe OR OriginalFileName = Tttracer.exe OR OriginalFileName = Verclsid.exe OR OriginalFileName = Wab.exe OR OriginalFileName = Wmic.exe OR OriginalFileName = Wscript.exe OR OriginalFileName = Wsreset.exe OR OriginalFileName = Xwizard.exe OR OriginalFileName = Advpack.dll OR OriginalFileName = Comsvcs.dll OR OriginalFileName = Ieadvpack.dll OR OriginalFileName = Ieaframe.dll OR OriginalFileName = Mshtml.dll OR OriginalFileName = Pcwutl.dll OR OriginalFileName = Setupapi.dll OR OriginalFileName = Shdocvw.dll OR OriginalFileName = Shell32.dll OR OriginalFileName = Syssetup.dll OR OriginalFileName = Url.dll OR OriginalFileName = Zipfldr.dll OR OriginalFileName = Appvlp.exe OR OriginalFileName = Bginfo.exe OR OriginalFileName = Cdb.exe OR OriginalFileName = csi.exe OR OriginalFileName = Devtoolslauncher.exe OR OriginalFileName = dnx.exe OR OriginalFileName = Dxcap.exe OR OriginalFileName = Excel.exe OR OriginalFileName = Mftrace.exe OR OriginalFileName = Msdeploy.exe OR OriginalFileName = msxsl.exe OR OriginalFileName = Powerpnt.exe OR OriginalFileName = rcsi.exe OR OriginalFileName = Sqler.exe OR OriginalFileName = Sqlps.exe OR OriginalFileName = SQLToolsPS.exe OR OriginalFileName = Squirrel.exe OR OriginalFileName = te.exe OR OriginalFileName = Tracker.exe OR OriginalFileName = Update.exe OR OriginalFileName = vsjitdebugger.exe OR OriginalFileName = Winword.exe OR OriginalFileName = Wsl.exe OR OriginalFileName = CL_Mutexverifiers.ps1 OR OriginalFileName = CL_Invocation.ps1 OR OriginalFileName = Manage-bde.wsf OR OriginalFileName = Pubprn.vbs OR OriginalFileName = Slmgr.vbs OR OriginalFileName = Syncappvpublishingserver.vbs OR OriginalFileName = winrm.vbs OR OriginalFileName = Pester.bat)|eval CommandLine=lower(CommandLine)|eventstats count(process) as procCount by process|eventstats avg(procCount) as avg stdev(procCount) as stdev|eval lowerBound=(avg-stdev*1.5)|eval isOutlier=if((procCount < lowerBound),1,0)|where isOutlier=1|table host, Image, ParentImage, CommandLine, ParentCommandLine, procCount
+
+Title: 
+processes = search Process:Create
+lolbas_processes = filter processes where (exe = "At.exe" OR exe = "Atbroker.exe" OR exe = "Bash.exe" OR exe = "Bitsadmin.exe" OR exe = "Certutil.exe" OR exe = "Cmd.exe" OR exe = "Cmdkey.exe" OR exe = "Cmstp.exe" OR exe = "Control.exe" OR exe = "Csc.exe" OR exe = "Cscript.exe" OR exe = "Dfsvc.exe" OR exe = "Diskshadow.exe" OR exe = "Dnscmd.exe" OR exe = "Esentutl.exe" OR exe = "Eventvwr.exe" OR exe = "Expand.exe" OR exe = "Extexport.exe" OR exe = "Extrac32.exe" OR exe = "Findstr.exe" OR exe = "Forfiles.exe" OR exe = "Ftp.exe" OR exe = "Gpscript.exe" OR exe = "Hh.exe" OR exe = "Ie4uinit.exe" OR exe = "Ieexec.exe" OR exe = "Infdefaultinstall.exe" OR exe = "Installutil.exe" OR exe = "Jsc.exe" OR exe = "Makecab.exe" OR exe = "Mavinject.exe" OR exe = "Microsoft.Workflow.r.exe" OR exe = "Mmc.exe" OR exe = "Msbuild.exe" OR exe = "Msconfig.exe" OR exe = "Msdt.exe" OR exe = "Mshta.exe" OR exe = "Msiexec.exe" OR exe = "Odbcconf.exe" OR exe = "Pcalua.exe" OR exe = "Pcwrun.exe" OR exe = "Presentationhost.exe" OR exe = "Print.exe" OR exe = "Reg.exe" OR exe = "Regasm.exe" OR exe = "Regedit.exe" OR exe = "Register-cimprovider.exe" OR exe = "Regsvcs.exe" OR exe = "Regsvr32.exe" OR exe = "Replace.exe" OR exe = "Rpcping.exe" OR exe = "Rundll32.exe" OR exe = "Runonce.exe" OR exe = "Runscripthelper.exe" OR exe = "Sc.exe" OR exe = "Schtasks.exe" OR exe = "Scriptrunner.exe" OR exe = "SyncAppvPublishingServer.exe" OR exe = "Tttracer.exe" OR exe = "Verclsid.exe" OR exe = "Wab.exe" OR exe = "Wmic.exe" OR exe = "Wscript.exe" OR exe = "Wsreset.exe" OR exe = "Xwizard.exe" OR exe = "Advpack.dll OR exe = "Comsvcs.dll OR exe = "Ieadvpack.dll OR exe = "Ieaframe.dll OR exe = "Mshtml.dll OR exe = "Pcwutl.dll OR exe = "Setupapi.dll OR exe = "Shdocvw.dll OR exe = "Shell32.dll OR exe = "Syssetup.dll OR exe = "Url.dll OR exe = "Zipfldr.dll OR exe = "Appvlp.exe" OR exe = "Bginfo.exe" OR exe = "Cdb.exe" OR exe = "csi.exe" OR exe = "Devtoolslauncher.exe" OR exe = "dnx.exe" OR exe = "Dxcap.exe" OR exe = "Excel.exe" OR exe = "Mftrace.exe" OR exe = "Msdeploy.exe" OR exe = "msxsl.exe" OR exe = "Powerpnt.exe" OR exe = "rcsi.exe" OR exe = "Sqler.exe" OR exe = "Sqlps.exe" OR exe = "SQLToolsPS.exe" OR exe = "Squirrel.exe" OR exe = "te.exe" OR exe = "Tracker.exe" OR exe = "Update.exe" OR exe = "vsjitdebugger.exe" OR exe = "Winword.exe" OR exe = "Wsl.exe" OR exe = "CL_Mutexverifiers.ps1 OR exe = "CL_Invocation.ps1 OR exe = "Manage-bde.wsf OR exe = "Pubprn.vbs OR exe = "Slmgr.vbs OR exe = "Syncappvpublishingserver.vbs OR exe = "winrm.vbs OR exe = "Pester.bat)
+process_count = count(lolbas_processes) by process
+process_count_avg = average(process_count)
+process_count_stdev = standard_deviation(process_count)
+lower_bound = process_count_avg - stdev * 1.5
+outliers = filter lolbas_processes where (process_count < lower_bound)
+return outliers
+
+Title: LolBAS Rare Commands (Splunk, Sysmon native)
+index=__your_sysmon_index__ EventCode=1 (OriginalFileName = At.exe OR OriginalFileName = Atbroker.exe OR OriginalFileName = Bash.exe OR OriginalFileName = Bitsadmin.exe OR OriginalFileName = Certutil.exe OR OriginalFileName = Cmd.exe OR OriginalFileName = Cmdkey.exe OR OriginalFileName = Cmstp.exe OR OriginalFileName = Control.exe OR OriginalFileName = Csc.exe OR OriginalFileName = Cscript.exe OR OriginalFileName = Dfsvc.exe OR OriginalFileName = Diskshadow.exe OR OriginalFileName = Dnscmd.exe OR OriginalFileName = Esentutl.exe OR OriginalFileName = Eventvwr.exe OR OriginalFileName = Expand.exe OR OriginalFileName = Extexport.exe OR OriginalFileName = Extrac32.exe OR OriginalFileName = Findstr.exe OR OriginalFileName = Forfiles.exe OR OriginalFileName = Ftp.exe OR OriginalFileName = Gpscript.exe OR OriginalFileName = Hh.exe OR OriginalFileName = Ie4uinit.exe OR OriginalFileName = Ieexec.exe OR OriginalFileName = Infdefaultinstall.exe OR OriginalFileName = Installutil.exe OR OriginalFileName = Jsc.exe OR OriginalFileName = Makecab.exe OR OriginalFileName = Mavinject.exe OR OriginalFileName = Microsoft.Workflow.r.exe OR OriginalFileName = Mmc.exe OR OriginalFileName = Msbuild.exe OR OriginalFileName = Msconfig.exe OR OriginalFileName = Msdt.exe OR OriginalFileName = Mshta.exe OR OriginalFileName = Msiexec.exe OR OriginalFileName = Odbcconf.exe OR OriginalFileName = Pcalua.exe OR OriginalFileName = Pcwrun.exe OR OriginalFileName = Presentationhost.exe OR OriginalFileName = Print.exe OR OriginalFileName = Reg.exe OR OriginalFileName = Regasm.exe OR OriginalFileName = Regedit.exe OR OriginalFileName = Register-cimprovider.exe OR OriginalFileName = Regsvcs.exe OR OriginalFileName = Regsvr32.exe OR OriginalFileName = Replace.exe OR OriginalFileName = Rpcping.exe OR OriginalFileName = Rundll32.exe OR OriginalFileName = Runonce.exe OR OriginalFileName = Runscripthelper.exe OR OriginalFileName = Sc.exe OR OriginalFileName = Schtasks.exe OR OriginalFileName = Scriptrunner.exe OR OriginalFileName = SyncAppvPublishingServer.exe OR OriginalFileName = Tttracer.exe OR OriginalFileName = Verclsid.exe OR OriginalFileName = Wab.exe OR OriginalFileName = Wmic.exe OR OriginalFileName = Wscript.exe OR OriginalFileName = Wsreset.exe OR OriginalFileName = Xwizard.exe OR OriginalFileName = Advpack.dll OR OriginalFileName = Comsvcs.dll OR OriginalFileName = Ieadvpack.dll OR OriginalFileName = Ieaframe.dll OR OriginalFileName = Mshtml.dll OR OriginalFileName = Pcwutl.dll OR OriginalFileName = Setupapi.dll OR OriginalFileName = Shdocvw.dll OR OriginalFileName = Shell32.dll OR OriginalFileName = Syssetup.dll OR OriginalFileName = Url.dll OR OriginalFileName = Zipfldr.dll OR OriginalFileName = Appvlp.exe OR OriginalFileName = Bginfo.exe OR OriginalFileName = Cdb.exe OR OriginalFileName = csi.exe OR OriginalFileName = Devtoolslauncher.exe OR OriginalFileName = dnx.exe OR OriginalFileName = Dxcap.exe OR OriginalFileName = Excel.exe OR OriginalFileName = Mftrace.exe OR OriginalFileName = Msdeploy.exe OR OriginalFileName = msxsl.exe OR OriginalFileName = Powerpnt.exe OR OriginalFileName = rcsi.exe OR OriginalFileName = Sqler.exe OR OriginalFileName = Sqlps.exe OR OriginalFileName = SQLToolsPS.exe OR OriginalFileName = Squirrel.exe OR OriginalFileName = te.exe OR OriginalFileName = Tracker.exe OR OriginalFileName = Update.exe OR OriginalFileName = vsjitdebugger.exe OR OriginalFileName = Winword.exe OR OriginalFileName = Wsl.exe OR OriginalFileName = CL_Mutexverifiers.ps1 OR OriginalFileName = CL_Invocation.ps1 OR OriginalFileName = Manage-bde.wsf OR OriginalFileName = Pubprn.vbs OR OriginalFileName = Slmgr.vbs OR OriginalFileName = Syncappvpublishingserver.vbs OR OriginalFileName = winrm.vbs OR OriginalFileName = Pester.bat)|eval CommandLine=lower(CommandLine)|eventstats count(process) as procCount by process|eventstats avg(procCount) as avg stdev(procCount) as stdev|eval lowerBound=(avg-stdev*1.5)|eval isOutlier=if((procCount < lowerBound),1,0)|where isOutlier=1|table host, Image, ParentImage, CommandLine, ParentCommandLine, procCount
+Title: Common Startup Registry Key Modification (Pseudocode, CAR native)
+processes = search Process:create
+logon_reg_processes = filter processes where (command_line CONTAINS("*reg*") AND command_line CONTAINS("*add*") AND command_line CONTAINS("*/d*") OR (command_line CONTAINS("*Set-ItemProperty*") AND command_line CONTAINS("*-value*")) AND command_line CONTAINS("*Common Startup*"))
+reg_keys = search Registry:value_edit
+logon_reg_keys = filter reg_keys where value="Common Startup"
+output logon_reg_processes, logon_reg_keys
+
+Title: Splunk Search - Modification of default Startup Folder in the Registry Key “Common Startup” (Splunk)
+(((EventCode="4688" OR EventCode="1") (CommandLine="*reg*" AND CommandLine="*add*" AND CommandLine="*/d*") OR (CommandLine="*Set-ItemProperty*" AND CommandLine="*-value*") CommandLine="*Common Startup*") OR ((EventCode="4657" ObjectValueName="Common Startup") OR (EventCode="13" TargetObject="*Common Startup")))
+
+Title: Elastic Search - Modification of default Startup Folder in the Registry Key “Common Startup” (Elastic)
+((EventLog:"Security" AND (winlog.event_id:"4688" OR winlog.event_id:"1") AND ((process.command_line:*reg* AND process.command_line:*add* AND process.command_line:*\/d*) OR (process.command_line:*Set\-ItemProperty* AND process.command_line:*\-value*)) AND process.command_line:*Common\ Startup*) OR (winlog.event_id:"4657" AND winlog.event_data.ObjectValueName:"Common\ Startup") OR (winlog.event_id:"13" AND winlog.event_data.TargetObject:"*Common Startup"))
+
+Title: LogPoint Search - Modification of default Startup Folder in the Registry Key “Common Startup” (Logpoint)
+((EventLog="Security" (event_id="4688" OR event_id="1") ((CommandLine="*reg*" CommandLine="*add*" CommandLine="*/d*") OR (CommandLine="*Set-ItemProperty*" CommandLine="*-value*")) CommandLine="*Common Startup*") OR (event_id="4657" ObjectValueName="Common Startup") OR (event_id="13" TargetObject="*Common Startup"))
+
+Title: Test Case 1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v "Common Startup" /d "C:\Users\Lucas\Documents\new_malicious_startup_folder" /f
+
+Title: Test Case 2
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "Common Startup" -Value C:\Users\Lucas\Documents\new_malicious_startup_folder
+
+Title: 
+processes = search Process:create
+logon_reg_processes = filter processes where (command_line CONTAINS("*reg*") AND command_line CONTAINS("*add*") AND command_line CONTAINS("*/d*") OR (command_line CONTAINS("*Set-ItemProperty*") AND command_line CONTAINS("*-value*")) AND command_line CONTAINS("*Common Startup*"))
+reg_keys = search Registry:value_edit
+logon_reg_keys = filter reg_keys where value="Common Startup"
+output logon_reg_processes, logon_reg_keys
+
+Title: Splunk Search - Modification of default Startup Folder in the Registry Key “Common Startup” (Splunk)
+(((EventCode="4688" OR EventCode="1") (CommandLine="*reg*" AND CommandLine="*add*" AND CommandLine="*/d*") OR (CommandLine="*Set-ItemProperty*" AND CommandLine="*-value*") CommandLine="*Common Startup*") OR ((EventCode="4657" ObjectValueName="Common Startup") OR (EventCode="13" TargetObject="*Common Startup")))
+
+Title: Elastic Search - Modification of default Startup Folder in the Registry Key “Common Startup” (Elastic)
+((EventLog:"Security" AND (winlog.event_id:"4688" OR winlog.event_id:"1") AND ((process.command_line:*reg* AND process.command_line:*add* AND process.command_line:*\/d*) OR (process.command_line:*Set\-ItemProperty* AND process.command_line:*\-value*)) AND process.command_line:*Common\ Startup*) OR (winlog.event_id:"4657" AND winlog.event_data.ObjectValueName:"Common\ Startup") OR (winlog.event_id:"13" AND winlog.event_data.TargetObject:"*Common Startup"))
+
+Title: LogPoint Search - Modification of default Startup Folder in the Registry Key “Common Startup” (Logpoint)
+((EventLog="Security" (event_id="4688" OR event_id="1") ((CommandLine="*reg*" CommandLine="*add*" CommandLine="*/d*") OR (CommandLine="*Set-ItemProperty*" CommandLine="*-value*")) CommandLine="*Common Startup*") OR (event_id="4657" ObjectValueName="Common Startup") OR (event_id="13" TargetObject="*Common Startup"))
+
+Title: Test Case 1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v "Common Startup" /d "C:\Users\Lucas\Documents\new_malicious_startup_folder" /f
+
+Title: Test Case 2
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "Common Startup" -Value C:\Users\Lucas\Documents\new_malicious_startup_folder
+----------------------------------------

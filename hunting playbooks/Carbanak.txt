@@ -1,0 +1,96 @@
+Technique ID: T1218.011
+Kill Chain Phases: defense-evasion
+Pseudocode:
+Title: Pseudocode
+process = search Process:Create
+rundll32 = filter process where (exe == "rundll32.exe")
+output rundll32
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=rundll32.exe limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\rundll32.exe"
+
+Title: Test Case 1
+c:\windows\syswow64\rundll32.exe
+RUNDLL32.EXE SHELL32.DLL,Control_RunDLL desk.cpl,,0
+
+Title: 
+process = search Process:Create
+rundll32 = filter process where (exe == "rundll32.exe")
+output rundll32
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=rundll32.exe limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\rundll32.exe"
+
+Title: Test Case 1
+c:\windows\syswow64\rundll32.exe
+RUNDLL32.EXE SHELL32.DLL,Control_RunDLL desk.cpl,,0
+----------------------------------------
+Technique ID: T1036.005
+Kill Chain Phases: defense-evasion
+Pseudocode:
+Title: Pseudocode - Common Windows Process Masquerading (Pseudocode, CAR native)
+processes = search Process:*
+suspicious_processes = filter processes where (
+  (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
+  OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
+  OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
+  OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
+  OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
+  OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
+  OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
+  OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
+  OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
+  OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
+  )
+output suspicious_processes
+
+Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
+index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
+(process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
+OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
+OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
+OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
+OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
+OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
+OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
+OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
+OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
+OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
+)
+
+Title: 
+processes = search Process:*
+suspicious_processes = filter processes where (
+  (exe=svchost.exe AND (image_path!="C:\\Windows\\System32\\svchost.exe" OR process_path!="C:\\Windows\\SysWow64\\svchost.exe"))
+  OR (exe=smss.exe AND image_path!="C:\\Windows\\System32\\smss.exe")
+  OR (exe=wininit.exe AND image_path!="C:\\Windows\\System32\\wininit.exe")
+  OR (exe=taskhost.exe AND image_path!="C:\\Windows\\System32\\taskhost.exe")
+  OR (exe=lasass.exe AND image_path!="C:\\Windows\\System32\\lsass.exe")
+  OR (exe=winlogon.exe AND image_path!="C:\\Windows\\System32\\winlogon.exe")
+  OR (exe=csrss.exe AND image_path!="C:\\Windows\\System32\\csrss.exe")
+  OR (exe=services.exe AND image_path!="C:\\Windows\\System32\\services.exe")
+  OR (exe=lsm.exe AND image_path!="C:\\Windows\\System32\\lsm.exe")
+  OR (exe=explorer.exe AND image_path!="C:\\Windows\\explorer.exe")
+  )
+output suspicious_processes
+
+Title: Splunk Search - Common Windows Process Masquerading (Splunk, Sysmon native)
+index=__your_sysmon_index__ source="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" AND (
+(process_name=svchost.exe AND NOT (process_path="C:\\Windows\\System32\\svchost.exe" OR process_path="C:\\Windows\\SysWow64\\svchost.exe"))
+OR (process_name=smss.exe AND NOT process_path="C:\\Windows\\System32\\smss.exe")
+OR (process_name=wininit.exe AND NOT process_path="C:\\Windows\\System32\\wininit.exe")
+OR (process_name=taskhost.exe AND NOT process_path="C:\\Windows\\System32\\taskhost.exe")
+OR (process_name=lasass.exe AND NOT process_path="C:\\Windows\\System32\\lsass.exe")
+OR (process_name=winlogon.exe AND NOT process_path="C:\\Windows\\System32\\winlogon.exe")
+OR (process_name=csrss.exe AND NOT process_path="C:\\Windows\\System32\\csrss.exe")
+OR (process_name=services.exe AND NOT process_path="C:\\Windows\\System32\\services.exe")
+OR (process_name=lsm.exe AND NOT process_path="C:\\Windows\\System32\\lsm.exe")
+OR (process_name=explorer.exe AND NOT process_path="C:\\Windows\\explorer.exe")
+)
+----------------------------------------

@@ -1,0 +1,102 @@
+Technique ID: T1059.003
+Kill Chain Phases: execution
+Pseudocode:
+Title: Pseudocode
+process = search Process:Create
+cmd = filter process where (exe == "cmd.exe")
+output cmd
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
+
+Title: 
+process = search Process:Create
+cmd = filter process where (exe == "cmd.exe")
+output cmd
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
+Title: Pseudocode
+processes = search Process:Create
+cmd = filter processes where (exe == "cmd.exe")
+cmd = from cmd select parent_exe
+historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
+current_cmd = filter cmd (where timestamp >= now - 1 day)
+new_cmd = historic_cmd - current_cmd
+output new_cmd
+
+Title: 
+processes = search Process:Create
+cmd = filter processes where (exe == "cmd.exe")
+cmd = from cmd select parent_exe
+historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
+current_cmd = filter cmd (where timestamp >= now - 1 day)
+new_cmd = historic_cmd - current_cmd
+output new_cmd
+----------------------------------------
+Technique ID: T1059.001
+Kill Chain Phases: execution
+Pseudocode:
+Title: Pseudocode
+process = search Process:Create
+powershell = filter process where (exe == "powershell.exe" AND parent_exe != "explorer.exe" )
+output powershell
+
+Title: Splunk, Sysmon native
+index=__your_sysmon_index__ EventCode=1 Image="C:\\Windows\\*\\powershell.exe" ParentImage!="C:\\Windows\\explorer.exe"|stats values(CommandLine) as "Command Lines" values(ParentImage) as "Parent Images" by ComputerName
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_name == "powershell.exe" and parent_process_name != "explorer.exe")
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=powershell.exe NOT $ParentProcess=regex(.*explorer.exe.*)i limit 30
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\powershell.exe" -parent_image="C:\Windows\explorer.exe"
+
+Title: 
+process = search Process:Create
+powershell = filter process where (exe == "powershell.exe" AND parent_exe != "explorer.exe" )
+output powershell
+
+Title: Splunk, Sysmon native
+index=__your_sysmon_index__ EventCode=1 Image="C:\\Windows\\*\\powershell.exe" ParentImage!="C:\\Windows\\explorer.exe"|stats values(CommandLine) as "Command Lines" values(ParentImage) as "Parent Images" by ComputerName
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_name == "powershell.exe" and parent_process_name != "explorer.exe")
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=powershell.exe NOT $ParentProcess=regex(.*explorer.exe.*)i limit 30
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\powershell.exe" -parent_image="C:\Windows\explorer.exe"
+Title: Pseudocode
+process = search Process:Create
+wsmprovhost = filter process where (exe == "wsmprovhost.exe" and parent_exe == "svchost.exe")
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_name == "wsmprovhost.exe" and parent_process_name == "svchost.exe")
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\wsmprovhost.exe" parent_image="*\svchost.exe"
+
+Title: 
+process = search Process:Create
+wsmprovhost = filter process where (exe == "wsmprovhost.exe" and parent_exe == "svchost.exe")
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_name == "wsmprovhost.exe" and parent_process_name == "svchost.exe")
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\wsmprovhost.exe" parent_image="*\svchost.exe"
+----------------------------------------

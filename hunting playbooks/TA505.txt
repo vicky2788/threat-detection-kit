@@ -1,0 +1,465 @@
+Technique ID: T1552.001
+Kill Chain Phases: credential-access
+Pseudocode:
+Title: Pseudocode - reg.exe password search & powersploit modules (Pseudocode, CAR native)
+processes = search Process:Create
+  cred_processes = filter processes where (
+  command_line = "*reg* query HKLM /f password /t REG_SZ /s*" OR
+  command_line = "reg* query HKCU /f password /t REG_SZ /s" OR
+  command_line = "*Get-UnattendedInstallFile*" OR
+  command_line = "*Get-Webconfig*" OR
+  command_line = "*Get-ApplicationHost*" OR
+  command_line = "*Get-SiteListPassword*" OR
+  command_line = "*Get-CachedGPPPassword*" OR
+  command_line = "*Get-RegistryAutoLogon*")
+output cred_processes
+
+Title: Splunk Search - reg.exe password search & powersploit modules (Splunk, Sysmon native)
+((index=__your_sysmon_index__ EventCode=1) OR (index=__your_win_syslog_index__ EventCode=4688)) (CommandLine="*reg* query HKLM /f password /t REG_SZ /s*" OR CommandLine="reg* query HKCU /f password /t REG_SZ /s" OR CommandLine="*Get-UnattendedInstallFile*" OR CommandLine="*Get-Webconfig*" OR CommandLine="*Get-ApplicationHost*" OR CommandLine="*Get-SiteListPassword*" OR CommandLine="*Get-CachedGPPPassword*" OR CommandLine="*Get-RegistryAutoLogon*")
+
+Title: LogPoint search - reg.exe password search & powersploit modules (Logpoint, LogPoint native)
+norm_id=WindowsSysmon event_id=1 command IN ["*reg* query HKLM /f password /t REG_SZ /s*", "reg* query HKCU /f password /t REG_SZ /s", "*Get-UnattendedInstallFile*", "*Get-Webconfig*", "*Get-ApplicationHost*", "*Get-SiteListPassword*", "*Get-CachedGPPPassword*", "*Get-RegistryAutoLogon*"]
+
+Title: 
+processes = search Process:Create
+  cred_processes = filter processes where (
+  command_line = "*reg* query HKLM /f password /t REG_SZ /s*" OR
+  command_line = "reg* query HKCU /f password /t REG_SZ /s" OR
+  command_line = "*Get-UnattendedInstallFile*" OR
+  command_line = "*Get-Webconfig*" OR
+  command_line = "*Get-ApplicationHost*" OR
+  command_line = "*Get-SiteListPassword*" OR
+  command_line = "*Get-CachedGPPPassword*" OR
+  command_line = "*Get-RegistryAutoLogon*")
+output cred_processes
+
+Title: Splunk Search - reg.exe password search & powersploit modules (Splunk, Sysmon native)
+((index=__your_sysmon_index__ EventCode=1) OR (index=__your_win_syslog_index__ EventCode=4688)) (CommandLine="*reg* query HKLM /f password /t REG_SZ /s*" OR CommandLine="reg* query HKCU /f password /t REG_SZ /s" OR CommandLine="*Get-UnattendedInstallFile*" OR CommandLine="*Get-Webconfig*" OR CommandLine="*Get-ApplicationHost*" OR CommandLine="*Get-SiteListPassword*" OR CommandLine="*Get-CachedGPPPassword*" OR CommandLine="*Get-RegistryAutoLogon*")
+
+Title: LogPoint search - reg.exe password search & powersploit modules (Logpoint, LogPoint native)
+norm_id=WindowsSysmon event_id=1 command IN ["*reg* query HKLM /f password /t REG_SZ /s*", "reg* query HKCU /f password /t REG_SZ /s", "*Get-UnattendedInstallFile*", "*Get-Webconfig*", "*Get-ApplicationHost*", "*Get-SiteListPassword*", "*Get-CachedGPPPassword*", "*Get-RegistryAutoLogon*"]
+----------------------------------------
+Technique ID: T1059.005
+Kill Chain Phases: execution
+Pseudocode:
+Title: Pseudocode
+processes = search Process:Create
+reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+ or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+ or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+ or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+ or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+ or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+ or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+ or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+ or exe == "wscript.exe" or exe == "xcopy.exe")
+reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+output reg_grouped
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+>>_agg count
+>>_checkif int_compare Count > 1 include
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+| chart count() as cnt by host
+| search cnt > 1
+
+Title: Test Case 1
+ipconfig /all
+hostname
+systeminfo
+reg.exe Query HKLM\Software\Microsoft
+
+Title: 
+processes = search Process:Create
+reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+ or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+ or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+ or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+ or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+ or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+ or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+ or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+ or exe == "wscript.exe" or exe == "xcopy.exe")
+reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+output reg_grouped
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+>>_agg count
+>>_checkif int_compare Count > 1 include
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+| chart count() as cnt by host
+| search cnt > 1
+
+Title: Test Case 1
+ipconfig /all
+hostname
+systeminfo
+reg.exe Query HKLM\Software\Microsoft
+----------------------------------------
+Technique ID: T1562.001
+Kill Chain Phases: defense-evasion
+Pseudocode:
+Title: Pseudocode
+processes = search Process:Create
+reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+ or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+ or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+ or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+ or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+ or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+ or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+ or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+ or exe == "wscript.exe" or exe == "xcopy.exe")
+reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+output reg_grouped
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+>>_agg count
+>>_checkif int_compare Count > 1 include
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+| chart count() as cnt by host
+| search cnt > 1
+
+Title: Test Case 1
+ipconfig /all
+hostname
+systeminfo
+reg.exe Query HKLM\Software\Microsoft
+
+Title: 
+processes = search Process:Create
+reg_processes = filter processes where (exe == "arp.exe" or exe == "at.exe" or exe == "attrib.exe"
+ or exe == "cscript.exe" or exe == "dsquery.exe" or exe == "hostname.exe"
+ or exe == "ipconfig.exe" or exe == "mimikatz.exe" or exe == "nbstat.exe"
+ or exe == "net.exe" or exe == "netsh.exe" or exe == "nslookup.exe"
+ or exe == "ping.exe" or exe == "quser.exe" or exe == "qwinsta.exe"
+ or exe == "reg.exe" or exe == "runas.exe" or exe == "sc.exe"
+ or exe == "schtasks.exe" or exe == "ssh.exe" or exe == "systeminfo.exe"
+ or exe == "taskkill.exe" or exe == "telnet.exe" or exe == "tracert.exe"
+ or exe == "wscript.exe" or exe == "xcopy.exe")
+reg_grouped = group reg by hostname, ppid where(max time between two events is 30 minutes)
+output reg_grouped
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=regex(arp\.exe|at\.exe|attrib\.exe|cscript\.exe|dsquery\.exe|hostname\.exe|ipconfig\.exe|mimikatz.exe|nbstat\.exe|net\.exe|netsh\.exe|nslookup\.exe|ping\.exe|quser\.exe|qwinsta\.exe|reg\.exe|runas\.exe|sc\.exe|schtasks\.exe|ssh\.exe|systeminfo\.exe|taskkill\.exe|telnet\.exe|tracert\.exe|wscript\.exe|xcopy\.exe)i group count_unique $App limit 100
+>>_agg count
+>>_checkif int_compare Count > 1 include
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image IN ["*\arp.exe", "*\at.exe", "*\attrib.exe", "*\cscript.exe", "*\dsquery.exe", "*\hostname.exe", "*\ipconfig.exe", "*\mimikatz.exe", "*\nbstat.exe", "*\net.exe", "*\netsh.exe", "*\nslookup.exe", "*\ping.exe", "*\quser.exe", "*\qwinsta.exe", "*\reg.exe", "*\runas.exe", "*\sc.exe", "*\schtasks.exe", "*\ssh.exe", "*\systeminfo.exe", "*\taskkill.exe", "*\telnet.exe", "*\tracert.exe", "*\wscript.exe", "*\xcopy.exe"]
+| chart count() as cnt by host
+| search cnt > 1
+
+Title: Test Case 1
+ipconfig /all
+hostname
+systeminfo
+reg.exe Query HKLM\Software\Microsoft
+Title: Pseudocode
+log_name == "System" AND
+event_code == "7036"
+param1 in ["Windows Defender", "Windows Firewall"] AND
+param2 == "stopped"
+
+Title: Logpoint, LogPoint native
+norm_id=WinServer channel="System" event_id=7036 param1 in ["Windows Defender", "Windows Firewall"] param2="stopped"
+
+Title: Test Case 1
+Stop-Service -displayname "Windows Firewall"
+Stop-Service -displayname "Windows Defender"
+
+Title: 
+log_name == "System" AND
+event_code == "7036"
+param1 in ["Windows Defender", "Windows Firewall"] AND
+param2 == "stopped"
+
+Title: Logpoint, LogPoint native
+norm_id=WinServer channel="System" event_id=7036 param1 in ["Windows Defender", "Windows Firewall"] param2="stopped"
+
+Title: Test Case 1
+Stop-Service -displayname "Windows Firewall"
+Stop-Service -displayname "Windows Defender"
+Title: Splunk search - Detecting Tampering of Windows Defender Command Prompt (Splunk, Sysmon native)
+index= __your_sysmon__index__ EventCode=1 Image = "C:\\Windows\\System32\\sc.exe"  | regex CommandLine="^sc\s*(config|stop|query)\sWinDefend$"
+
+Title: Splunk search - Detecting Tampering of Windows Defender Command Prompt (Pseudocode)
+processes = search Process:Create
+target_processes = filter processes where (
+                   (exe="C:\\Windows\\System32\\sc.exe") AND (command_line="sc *config*" OR command_line="sc *stop*" OR command_line="sc *query*")
+                   )
+output target_processes
+
+Title: 
+processes = search Process:Create
+target_processes = filter processes where (
+                   (exe="C:\\Windows\\System32\\sc.exe") AND (command_line="sc *config*" OR command_line="sc *stop*" OR command_line="sc *query*")
+                   )
+output target_processes
+----------------------------------------
+Technique ID: T1218.011
+Kill Chain Phases: defense-evasion
+Pseudocode:
+Title: Pseudocode
+process = search Process:Create
+rundll32 = filter process where (exe == "rundll32.exe")
+output rundll32
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=rundll32.exe limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\rundll32.exe"
+
+Title: Test Case 1
+c:\windows\syswow64\rundll32.exe
+RUNDLL32.EXE SHELL32.DLL,Control_RunDLL desk.cpl,,0
+
+Title: 
+process = search Process:Create
+rundll32 = filter process where (exe == "rundll32.exe")
+output rundll32
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=rundll32.exe limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\rundll32.exe"
+
+Title: Test Case 1
+c:\windows\syswow64\rundll32.exe
+RUNDLL32.EXE SHELL32.DLL,Control_RunDLL desk.cpl,,0
+----------------------------------------
+Technique ID: T1078.002
+Kill Chain Phases: defense-evasion, persistence, privilege-escalation, initial-access
+Pseudocode:
+Title: Pseudocode
+users_list = search UserSession:Login
+users_grouped = group users_list by hostname
+users_grouped = from users_grouped select min(time) as earliest_time, max(time) as latest_time count(user) as user_count
+multiple_logins = filter users_grouped where (latest_time - earliest_time <= 1 hour and user_count > 1)
+output multiple_logins
+
+Title: 
+users_list = search UserSession:Login
+users_grouped = group users_list by hostname
+users_grouped = from users_grouped select min(time) as earliest_time, max(time) as latest_time count(user) as user_count
+multiple_logins = filter users_grouped where (latest_time - earliest_time <= 1 hour and user_count > 1)
+output multiple_logins
+Title: Pseudocode
+flow = search Flow:Message
+smb_write = filter flow where (dest_port == "445" and protocol == "smb.write")
+smb_write.file_name = smb_write.proto_info.file_name
+output smb_write
+
+Title: 
+flow = search Flow:Message
+smb_write = filter flow where (dest_port == "445" and protocol == "smb.write")
+smb_write.file_name = smb_write.proto_info.file_name
+output smb_write
+Title: Pseudocode
+process = search Process:Create
+smb_write = run Analytic:CAR-2013-05-003
+remote_start = join (smb_write, process) where (
+ smb_write.hostname == process.hostname and
+ smb_write.file_path == process.image_path
+ (smb_write.time < process.time)
+)
+output remote_start
+
+Title: 
+process = search Process:Create
+smb_write = run Analytic:CAR-2013-05-003
+remote_start = join (smb_write, process) where (
+ smb_write.hostname == process.hostname and
+ smb_write.file_path == process.image_path
+ (smb_write.time < process.time)
+)
+output remote_start
+Title: Account Logon with Filtering (Pseudocode)
+logon_events = search User_Session:Login
+filtered_logons = filter logon_events where (
+  user NOT IN TOP30(user))
+output filtered_logons
+
+Title: Account Logon with Filtering (Splunk)
+index=__your_win_event_log_index__ EventCode=4624|search NOT [search index=__your_win_event_log_index__ EventCode=4624|top 30 Account_Name|table Account_Name]
+
+Title: Account Logon with Filtering (Dnif, Sysmon native)
+_fetch * from event where $LogName=WINDOWS-NXLOG-AUDIT AND $SubSystem=AUTHENTICATION AND $Action=LOGIN group count_unique $ScopeID, $User limit 30
+>>_store in_disk david_test win_top_30 stack_replace
+>>_fetch * from event where $LogName=WINDOWS-NXLOG-AUDIT AND $SubSystem=AUTHENTICATION AND $Action=LOGIN limit 10000
+>>_checkif lookup david_test win_top_30 join $ScopeID = $ScopeID str_compare $User eq $User exclude
+
+Title: 
+logon_events = search User_Session:Login
+filtered_logons = filter logon_events where (
+  user NOT IN TOP30(user))
+output filtered_logons
+
+Title: Account Logon with Filtering (Splunk)
+index=__your_win_event_log_index__ EventCode=4624|search NOT [search index=__your_win_event_log_index__ EventCode=4624|top 30 Account_Name|table Account_Name]
+
+Title: Account Logon with Filtering (Dnif, Sysmon native)
+_fetch * from event where $LogName=WINDOWS-NXLOG-AUDIT AND $SubSystem=AUTHENTICATION AND $Action=LOGIN group count_unique $ScopeID, $User limit 30
+>>_store in_disk david_test win_top_30 stack_replace
+>>_fetch * from event where $LogName=WINDOWS-NXLOG-AUDIT AND $SubSystem=AUTHENTICATION AND $Action=LOGIN limit 10000
+>>_checkif lookup david_test win_top_30 join $ScopeID = $ScopeID str_compare $User eq $User exclude
+----------------------------------------
+Technique ID: T1059.001
+Kill Chain Phases: execution
+Pseudocode:
+Title: Pseudocode
+process = search Process:Create
+powershell = filter process where (exe == "powershell.exe" AND parent_exe != "explorer.exe" )
+output powershell
+
+Title: Splunk, Sysmon native
+index=__your_sysmon_index__ EventCode=1 Image="C:\\Windows\\*\\powershell.exe" ParentImage!="C:\\Windows\\explorer.exe"|stats values(CommandLine) as "Command Lines" values(ParentImage) as "Parent Images" by ComputerName
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_name == "powershell.exe" and parent_process_name != "explorer.exe")
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=powershell.exe NOT $ParentProcess=regex(.*explorer.exe.*)i limit 30
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\powershell.exe" -parent_image="C:\Windows\explorer.exe"
+
+Title: 
+process = search Process:Create
+powershell = filter process where (exe == "powershell.exe" AND parent_exe != "explorer.exe" )
+output powershell
+
+Title: Splunk, Sysmon native
+index=__your_sysmon_index__ EventCode=1 Image="C:\\Windows\\*\\powershell.exe" ParentImage!="C:\\Windows\\explorer.exe"|stats values(CommandLine) as "Command Lines" values(ParentImage) as "Parent Images" by ComputerName
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_name == "powershell.exe" and parent_process_name != "explorer.exe")
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $App=powershell.exe NOT $ParentProcess=regex(.*explorer.exe.*)i limit 30
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\powershell.exe" -parent_image="C:\Windows\explorer.exe"
+Title: Pseudocode
+process = search Process:Create
+wsmprovhost = filter process where (exe == "wsmprovhost.exe" and parent_exe == "svchost.exe")
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_name == "wsmprovhost.exe" and parent_process_name == "svchost.exe")
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\wsmprovhost.exe" parent_image="*\svchost.exe"
+
+Title: 
+process = search Process:Create
+wsmprovhost = filter process where (exe == "wsmprovhost.exe" and parent_exe == "svchost.exe")
+
+Title: Eql, EQL native
+process where subtype.create and
+  (process_name == "wsmprovhost.exe" and parent_process_name == "svchost.exe")
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\wsmprovhost.exe" parent_image="*\svchost.exe"
+----------------------------------------
+Technique ID: T1055.001
+Kill Chain Phases: defense-evasion, privilege-escalation
+Pseudocode:
+Title: Pseudocode
+remote_thread = search Thread:RemoteCreate
+remote_thread = filter (start_function == "LoadLibraryA" or start_function == "LoadLibraryW")
+remote_thread = filter (src_image_path != "C:\Path\To\TrustedProgram.exe")
+
+output remote_thread
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=8 start_function IN ["LoadLibraryA", "LoadLibraryW"] -source_image="C:\Path\To\TrustedProgram.exe"
+
+Title: 
+remote_thread = search Thread:RemoteCreate
+remote_thread = filter (start_function == "LoadLibraryA" or start_function == "LoadLibraryW")
+remote_thread = filter (src_image_path != "C:\Path\To\TrustedProgram.exe")
+
+output remote_thread
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=8 start_function IN ["LoadLibraryA", "LoadLibraryW"] -source_image="C:\Path\To\TrustedProgram.exe"
+Title: Pseudocode - mavinject process and its common argument (Pseudocode, CAR native)
+processes = search Process:Create
+mavinject_processes = filter processes where (
+  exe = "C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR command_line = "*/INJECTRUNNING*"
+output mavinject_processes
+
+Title: Splunk Search - mavinject (Splunk, Sysmon native)
+(index=__your_sysmon_index__ EventCode=1) (Image="C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR CommandLine="*\INJECTRUNNING*")
+
+Title: LogPoint Search - mavinject (Logpoint, LogPoint native)
+norm_id=WindowsSysmon event_id=1 (image="C:\Windows\SysWOW64\mavinject.exe" OR image="C:\Windows\System32\mavinject.exe" OR command="*\INJECTRUNNING*")
+
+Title: 
+processes = search Process:Create
+mavinject_processes = filter processes where (
+  exe = "C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR command_line = "*/INJECTRUNNING*"
+output mavinject_processes
+
+Title: Splunk Search - mavinject (Splunk, Sysmon native)
+(index=__your_sysmon_index__ EventCode=1) (Image="C:\\Windows\\SysWOW64\\mavinject.exe" OR Image="C:\\Windows\\System32\\mavinject.exe" OR CommandLine="*\INJECTRUNNING*")
+
+Title: LogPoint Search - mavinject (Logpoint, LogPoint native)
+norm_id=WindowsSysmon event_id=1 (image="C:\Windows\SysWOW64\mavinject.exe" OR image="C:\Windows\System32\mavinject.exe" OR command="*\INJECTRUNNING*")
+----------------------------------------
+Technique ID: T1059.003
+Kill Chain Phases: execution
+Pseudocode:
+Title: Pseudocode
+process = search Process:Create
+cmd = filter process where (exe == "cmd.exe")
+output cmd
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
+
+Title: 
+process = search Process:Create
+cmd = filter process where (exe == "cmd.exe")
+output cmd
+
+Title: Dnif, Sysmon native
+_fetch * from event where $LogName=WINDOWS-SYSMON AND $EventID=1 AND $Process=regex(.*cmd\.exe.*)i limit 100
+
+Title: Logpoint, LogPoint native
+norm_id=WindowsSysmon event_id=1 image="*\cmd.exe"
+Title: Pseudocode
+processes = search Process:Create
+cmd = filter processes where (exe == "cmd.exe")
+cmd = from cmd select parent_exe
+historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
+current_cmd = filter cmd (where timestamp >= now - 1 day)
+new_cmd = historic_cmd - current_cmd
+output new_cmd
+
+Title: 
+processes = search Process:Create
+cmd = filter processes where (exe == "cmd.exe")
+cmd = from cmd select parent_exe
+historic_cmd = filter cmd (where timestamp < now - 1 day AND timestamp > now - 1 day)
+current_cmd = filter cmd (where timestamp >= now - 1 day)
+new_cmd = historic_cmd - current_cmd
+output new_cmd
+----------------------------------------

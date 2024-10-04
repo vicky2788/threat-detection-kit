@@ -1,0 +1,73 @@
+Technique ID: T1070.001
+Kill Chain Phases: defense-evasion
+Pseudocode:
+Title: PseudoCode for dedicated EventID EventLog deletion (Pseudocode)
+([log_name] == "Security" and [event_code] in [1100, 1102, 1104]) or
+([log_name] == "System" and [event_code] == 104)
+
+Title: LogPoint version of the above pseudocode. (Logpoint, LogPoint native)
+norm_id=WinServer ((channel="Security" event_id IN [1100,1102]) OR (channel="System" event_id=104))
+
+Title: Splunk search - Detecting log clearing with wevtutil (Splunk, Sysmon native)
+index=__your_sysmon_index__ sourcetype= __your__windows__sysmon__sourcetype EventCode=1 (Image=*wevtutil* CommandLine=*cl* (CommandLine=*System* OR CommandLine=*Security* OR CommandLine=*Setup* OR CommandLine=*Application*) OR Clear-EventLog OR Limit-EventLog OR (Remove-Item AND .evtx) OR Remove-EventLog)
+
+Title: Test Case 1
+Clear-Eventlog Security
+Clear-Eventlog System
+
+Title: Test Case 2
+Limit-EventLog -LogName Security -OverflowAction DoNotOverwrite
+
+Title: Test Case 3
+del C:\Windows\System32\winevt\logs\Security.evtx
+Remove-Item C:\Windows\System32\winevt\logs\Security.evtx
+
+Title: Test Case 4
+Remove-EventLog -LogName Security
+
+Title: 
+([log_name] == "Security" and [event_code] in [1100, 1102, 1104]) or
+([log_name] == "System" and [event_code] == 104)
+
+Title: LogPoint version of the above pseudocode. (Logpoint, LogPoint native)
+norm_id=WinServer ((channel="Security" event_id IN [1100,1102]) OR (channel="System" event_id=104))
+
+Title: Splunk search - Detecting log clearing with wevtutil (Splunk, Sysmon native)
+index=__your_sysmon_index__ sourcetype= __your__windows__sysmon__sourcetype EventCode=1 (Image=*wevtutil* CommandLine=*cl* (CommandLine=*System* OR CommandLine=*Security* OR CommandLine=*Setup* OR CommandLine=*Application*) OR Clear-EventLog OR Limit-EventLog OR (Remove-Item AND .evtx) OR Remove-EventLog)
+
+Title: Test Case 1
+Clear-Eventlog Security
+Clear-Eventlog System
+
+Title: Test Case 2
+Limit-EventLog -LogName Security -OverflowAction DoNotOverwrite
+
+Title: Test Case 3
+del C:\Windows\System32\winevt\logs\Security.evtx
+Remove-Item C:\Windows\System32\winevt\logs\Security.evtx
+
+Title: Test Case 4
+Remove-EventLog -LogName Security
+
+Title: 
+norm_id=WinServer ((channel="Security" event_id IN [1100,1102]) OR (channel="System" event_id=104))
+
+Title: Splunk search - Detecting log clearing with wevtutil (Splunk, Sysmon native)
+index=__your_sysmon_index__ sourcetype= __your__windows__sysmon__sourcetype EventCode=1 (Image=*wevtutil* CommandLine=*cl* (CommandLine=*System* OR CommandLine=*Security* OR CommandLine=*Setup* OR CommandLine=*Application*) OR Clear-EventLog OR Limit-EventLog OR (Remove-Item AND .evtx) OR Remove-EventLog)
+
+Title: Test Case 1
+Clear-Eventlog Security
+Clear-Eventlog System
+
+Title: Test Case 2
+Limit-EventLog -LogName Security -OverflowAction DoNotOverwrite
+
+Title: Test Case 3
+del C:\Windows\System32\winevt\logs\Security.evtx
+Remove-Item C:\Windows\System32\winevt\logs\Security.evtx
+
+Title: Test Case 4
+Remove-EventLog -LogName Security
+Title: Splunk search - Detecting log clearing with wevtutil (Splunk, Sysmon native)
+index=__your_sysmon_index__ sourcetype= __your__windows__sysmon__sourcetype EventCode=1 Image=*wevtutil* CommandLine=*cl* (CommandLine=*System* OR CommandLine=*Security* OR CommandLine=*Setup* OR CommandLine=*Application*)
+----------------------------------------
